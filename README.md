@@ -542,20 +542,5 @@ Because of this, some functionality that could be obtained from an existing high
 
 ---
 
-# License
-
-Add the license selected for the project here.
-
-For example:
-
-```text
-MIT License
-```
-
-or:
-
-```text
-MIT OR Apache-2.0
-```
 
 See the `LICENSE` file for details.
