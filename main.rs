@@ -20,6 +20,10 @@ const MAX_PAYLOAD_SIZE: usize = 65_507;
 const DEFAULT_TIMEOUT_MILLISECONDS: u64 = 2_000;
 const DEFAULT_INTERVAL_MILLISECONDS: u64 = 1_000;
 
+const DEFAULT_SWEEP_TIMEOUT_MILLISECONDS: u64 = 500;
+const DEFAULT_SWEEP_INTERVAL_MILLISECONDS: u64 = 10;
+const DEFAULT_SWEEP_CONCURRENCY: usize = 16;
+
 #[derive(Parser, Debug)]
 #[command(
     name = "ring",
@@ -34,7 +38,11 @@ struct Cli {
     continuous: bool,
 
     /// Probe local IPv4 broadcast addresses
-    #[arg(short = 'b', long)]
+    #[arg(
+        short = 'b',
+        long,
+        conflicts_with_all = ["route", "sweep", "json"]
+    )]
     broadcast: bool,
 
     /// ICMP payload size in bytes
@@ -47,29 +55,22 @@ struct Cli {
     size: usize,
 
     /// Reply timeout in milliseconds
-    #[arg(
-        short = 't',
-        long,
-        value_name = "MILLISECONDS",
-        default_value_t = DEFAULT_TIMEOUT_MILLISECONDS
-    )]
-    timeout: u64,
+    #[arg(short = 't', long, value_name = "MILLISECONDS")]
+    timeout: Option<u64>,
 
-    /// Delay between requests in milliseconds
-    #[arg(
-        short = 'i',
-        long = "interval",
-        value_name = "MILLISECONDS",
-        default_value_t = DEFAULT_INTERVAL_MILLISECONDS
-    )]
-    interval: u64,
+    /// Delay between transmitted requests in milliseconds
+    #[arg(short = 'i', long = "interval", value_name = "MILLISECONDS")]
+    interval: Option<u64>,
 
     /// Host/IP normally, or interface name when -b is used
     #[arg(value_name = "TARGET")]
     target: Option<String>,
 
     /// Trace the route to the destination
-    #[arg(long)]
+    #[arg(
+        long,
+        conflicts_with_all = ["broadcast", "sweep", "json"]
+    )]
     route: bool,
 
     /// Perform reverse DNS lookups for route hops
@@ -88,9 +89,18 @@ struct Cli {
     #[arg(
         short = 'S',
         long,
-        conflicts_with_all = ["broadcast", "json"]
+        conflicts_with_all = ["broadcast", "route", "json"]
     )]
     sweep: bool,
+
+    /// Maximum number of outstanding sweep probes
+    #[arg(
+        long = "concurrency",
+        value_name = "COUNT",
+        default_value_t = DEFAULT_SWEEP_CONCURRENCY,
+        requires = "sweep"
+    )]
+    concurrency: usize,
 
     /// Automatically confirm permitted large RFC1918 private-network sweeps
     #[arg(short = 'y', long = "yes", requires = "sweep")]
@@ -192,6 +202,12 @@ struct SweepRange {
     network: Option<Ipv4Addr>,
     prefix_length: Option<u8>,
     interface_name: Option<String>,
+}
+
+struct SweepProbe {
+    target: Ipv4Addr,
+    sequence: u16,
+    sent_at: Instant,
 }
 
 #[derive(Serialize)]
@@ -412,6 +428,10 @@ enum JsonStatus {
     PermissionDenied,
     IcmpError,
     LocalError,
+}
+
+enum SweepEvent {
+    Reply { source: Ipv4Addr, sequence: u16 },
 }
 
 /// Develop Ping Packets for Transmission
@@ -709,6 +729,26 @@ fn duration_ms(duration: Duration) -> f64 {
     (duration.as_secs_f64() * 1_000_000.0).round() / 1_000.0
 }
 
+fn effective_timeout(cli: &Cli) -> Duration {
+    let milliseconds = cli.timeout.unwrap_or(if cli.sweep {
+        DEFAULT_SWEEP_TIMEOUT_MILLISECONDS
+    } else {
+        DEFAULT_TIMEOUT_MILLISECONDS
+    });
+
+    Duration::from_millis(milliseconds)
+}
+
+fn effective_interval(cli: &Cli) -> Duration {
+    let milliseconds = cli.interval.unwrap_or(if cli.sweep {
+        DEFAULT_SWEEP_INTERVAL_MILLISECONDS
+    } else {
+        DEFAULT_INTERVAL_MILLISECONDS
+    });
+
+    Duration::from_millis(milliseconds)
+}
+
 /// Additional Network Identification Functions
 fn extract_ttl(message: &libc::msghdr) -> Option<u8> {
     unsafe {
@@ -819,11 +859,23 @@ fn run_broadcast_mode(cli: &Cli) -> io::Result<()> {
     if interfaces.is_empty() {
         match requested_interface {
             Some(name) => {
-                eprintln!("ring: no usable IPv4 broadcast interface named {}", name);
+                eprintln!(
+                    "{}",
+                    style(format!(
+                        "ring: no usable IPv4 broadcast interface named {name}"
+                    ))
+                    .red()
+                    .bold()
+                );
             }
 
             None => {
-                eprintln!("ring: no usable IPv4 broadcast interfaces found");
+                eprintln!(
+                    "{}",
+                    style("ring: no usable IPv4 broadcast interfaces found")
+                        .red()
+                        .bold()
+                );
             }
         }
 
@@ -1085,6 +1137,166 @@ fn route_probe_count(cli: &Cli) -> u32 {
     }
 }
 
+fn set_socket_nonblocking(fd: i32) -> io::Result<()> {
+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+
+    if flags < 0 {
+        return Err(io::Error::last_os_error());
+    }
+
+    let result = unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) };
+
+    if result < 0 {
+        return Err(io::Error::last_os_error());
+    }
+
+    Ok(())
+}
+
+fn sweep_range(
+    fd: i32,
+    range: &SweepRange,
+    payload_size: usize,
+    timeout: Duration,
+    interval: Duration,
+    concurrency: usize,
+) -> io::Result<()> {
+    let mut next_address = u32::from(range.first);
+    let last_address = u32::from(range.last);
+
+    let mut sequence: u16 = 1;
+
+    let mut outstanding: Vec<SweepProbe> = Vec::new();
+
+    let mut next_send = Instant::now();
+
+    while next_address <= last_address || !outstanding.is_empty() {
+        //
+        // Send new probes while capacity exists.
+        //
+        while next_address <= last_address
+            && outstanding.len() < concurrency
+            && Instant::now() >= next_send
+        {
+            let target = Ipv4Addr::from(next_address);
+
+            let packet = build_echo_request(sequence, payload_size);
+
+            match send_echo_request(fd, target, &packet) {
+                Ok(()) => {
+                    outstanding.push(SweepProbe {
+                        target,
+                        sequence,
+                        sent_at: Instant::now(),
+                    });
+                }
+
+                Err(error) => {
+                    match error.kind() {
+                        io::ErrorKind::HostUnreachable | io::ErrorKind::NetworkUnreachable => {
+                            // A queued ICMP error from an earlier sweep probe can
+                            // surface on sendto(). It does not reliably describe
+                            // the target currently being transmitted, so keep
+                            // normal sweep output silent.
+                        }
+
+                        _ => {
+                            eprintln!("{}", style(format!("ring: {target}: {error}")).red().bold());
+                        }
+                    }
+                }
+            }
+
+            next_address += 1;
+            sequence = sequence.wrapping_add(1);
+
+            next_send = Instant::now() + interval;
+        }
+
+        //
+        // Drain all currently available replies.
+        //
+        while let Some(event) = receive_sweep_reply(fd)? {
+            match event {
+                SweepEvent::Reply { source, sequence } => {
+                    if let Some(index) = outstanding
+                        .iter()
+                        .position(|probe| probe.sequence == sequence && probe.target == source)
+                    {
+                        println!("{source}");
+
+                        outstanding.swap_remove(index);
+                    }
+                }
+            }
+        }
+
+        //
+        // Remove probes whose individual deadlines expired.
+        //
+        let now = Instant::now();
+
+        outstanding.retain(|probe| now.duration_since(probe.sent_at) < timeout);
+
+        //
+        // Avoid a CPU-burning busy loop.
+        //
+        thread::sleep(Duration::from_millis(1));
+    }
+
+    Ok(())
+}
+
+fn receive_sweep_reply(fd: i32) -> io::Result<Option<SweepEvent>> {
+    let mut buffer = [0u8; 65535];
+
+    let mut source: libc::sockaddr_in = unsafe { mem::zeroed() };
+
+    let mut iov = libc::iovec {
+        iov_base: buffer.as_mut_ptr() as *mut libc::c_void,
+        iov_len: buffer.len(),
+    };
+
+    let mut message: libc::msghdr = unsafe { mem::zeroed() };
+
+    message.msg_name = &mut source as *mut libc::sockaddr_in as *mut libc::c_void;
+
+    message.msg_namelen = mem::size_of::<libc::sockaddr_in>() as libc::socklen_t;
+
+    message.msg_iov = &mut iov;
+    message.msg_iovlen = 1;
+
+    let received = unsafe { libc::recvmsg(fd, &mut message, libc::MSG_DONTWAIT) };
+
+    if received < 0 {
+        let error = io::Error::last_os_error();
+
+        return match error.kind() {
+            io::ErrorKind::WouldBlock
+            | io::ErrorKind::HostUnreachable
+            | io::ErrorKind::NetworkUnreachable => Ok(None),
+
+            _ => Err(error),
+        };
+    }
+
+    let received = received as usize;
+
+    if received < ICMP_HEADER_SIZE {
+        return Ok(None);
+    }
+
+    if buffer[0] != ICMP_ECHO_REPLY || buffer[1] != 0 {
+        return Ok(None);
+    }
+
+    let sequence = u16::from_be_bytes([buffer[6], buffer[7]]);
+
+    let source = Ipv4Addr::from(source.sin_addr.s_addr.to_ne_bytes());
+
+    Ok(Some(SweepEvent::Reply { source, sequence }))
+}
+
 fn range_from_interface(interface: &Ipv4Interface) -> io::Result<SweepRange> {
     if interface.prefix_length >= 31 {
         return Err(io::Error::new(
@@ -1259,11 +1471,19 @@ fn validate_sweep_range(range: &SweepRange, yes: bool, force: bool) -> io::Resul
 
     if !private {
         eprintln!(
-            "ring: {} - {} is not entirely within RFC1918 private address space",
-            range.first, range.last
+            "{}",
+            style(format!(
+                "ring: {} - {} is not entirely within RFC1918 private address space",
+                range.first, range.last
+            ))
+            .red()
+            .bold()
         );
 
-        eprintln!("Use --force to authorize sweeping non-private address space.");
+        eprintln!(
+            "{}",
+            style("Use --force to authorize sweeping non-private address space.").yellow()
+        );
 
         return Ok(false);
     }
@@ -1353,8 +1573,12 @@ fn build_sweep_ranges(cli: &Cli) -> io::Result<Vec<SweepRange>> {
     interfaces.iter().map(range_from_interface).collect()
 }
 
-fn run_sweep_mode(cli: &Cli) -> io::Result<()> {
+fn run_sweep_mode(cli: &Cli, timeout: Duration, interval: Duration) -> io::Result<()> {
     let ranges = build_sweep_ranges(cli)?;
+
+    let fd = create_ping_socket(timeout)?;
+
+    set_socket_nonblocking(fd)?;
 
     for range in &ranges {
         if !validate_sweep_range(range, cli.yes, cli.force)? {
@@ -1383,6 +1607,12 @@ fn run_sweep_mode(cli: &Cli) -> io::Result<()> {
                 );
             }
         }
+
+        sweep_range(fd, range, cli.size, timeout, interval, cli.concurrency)?;
+    }
+
+    unsafe {
+        libc::close(fd);
     }
 
     Ok(())
@@ -1948,12 +2178,12 @@ fn main() -> io::Result<()> {
     let cli = Cli::parse();
 
     if cli.count == Some(0) {
-        eprintln!("COUNT must be greater than zero");
+        eprintln!("{}", style("COUNT must be greater than zero").red().bold());
 
         std::process::exit(2);
     }
 
-    if cli.timeout == 0 {
+    if cli.timeout == Some(0) {
         eprintln!(
             "{}",
             style("TIMEOUT must be greater than zero").red().bold()
@@ -1961,10 +2191,18 @@ fn main() -> io::Result<()> {
         std::process::exit(2);
     }
 
-    if cli.interval == 0 {
+    if cli.interval == Some(0) {
         eprintln!(
             "{}",
             style("INTERVAL must be greater than zero").red().bold()
+        );
+        std::process::exit(2);
+    }
+
+    if cli.concurrency == 0 {
+        eprintln!(
+            "{}",
+            style("CONCURRENCY must be greater than zero").red().bold()
         );
         std::process::exit(2);
     }
@@ -1981,22 +2219,27 @@ fn main() -> io::Result<()> {
         std::process::exit(2);
     }
 
-    let timeout = Duration::from_millis(cli.timeout);
-    let interval = Duration::from_millis(cli.interval);
+    let timeout = effective_timeout(&cli);
+    let interval = effective_interval(&cli);
 
     if cli.broadcast {
         return run_broadcast_mode(&cli);
     }
 
     if cli.sweep {
-        return run_sweep_mode(&cli);
+        return run_sweep_mode(&cli, timeout, interval);
     }
 
     let target_name = match &cli.target {
         Some(target) => target,
 
         None => {
-            eprintln!("TARGET is required for ping and route modes");
+            eprintln!(
+                "{}",
+                style("TARGET is required for ping and route modes")
+                    .red()
+                    .bold()
+            );
 
             std::process::exit(2);
         }
@@ -2023,9 +2266,17 @@ fn main() -> io::Result<()> {
         Ok(fd) => fd,
 
         Err(error) => {
-            eprintln!("ring: unable to create ICMP ping socket: {}", error);
+            eprintln!(
+                "{}",
+                style(format!("ring: unable to create ICMP ping socket: {error}"))
+                    .red()
+                    .bold()
+            );
 
-            eprintln!("Check: sysctl net.ipv4.ping_group_range");
+            eprintln!(
+                "{}",
+                style("Check: sysctl net.ipv4.ping_group_range").yellow()
+            );
 
             std::process::exit(3);
         }
