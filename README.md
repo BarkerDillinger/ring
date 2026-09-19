@@ -1,3 +1,11 @@
+
+# Changes to `ring' in version 1.0.2
+- Distribute the application into Separate Discrete Function Files 
+- Include IPv6 Support
+- Include ARP functions - build a display and ARP Table
+  Use ARP to enumerate hosts in a more detailed scan
+
+
 # ring
 
 `ring` is a lightweight IPv4 ICMP network diagnostic utility written in Rust.
