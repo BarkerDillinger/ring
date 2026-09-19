@@ -1,7 +1,9 @@
 [package]
-name = "Basic_Ping"
+name = "ring"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "A Linux ICMP reachability, latency, route tracing, and network discovery utility"
 
 [[bin]]
 name = "ring"
