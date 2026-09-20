@@ -1,0 +1,4000 @@
+
+[1;35m============================================================[0m
+[1;35mring Test Environment[0m
+[1;35m============================================================[0m
+
+Project:     /home/dknowlton/Development/rust/ring/ring-v6add
+Interface:   ens18
+Local host:  172.23.23.32
+Gateway:     172.23.23.254
+DNS target:  google.com
+Date:        Sun Sep 20 02:55:19 PM MST 2026
+
+rustc 1.98.1 (48a229cea 2026-09-01)
+cargo 1.98.1 (797e8a9bc 2026-08-05)
+
+[1;35m============================================================[0m
+[1;35mClean Build Tests[0m
+[1;35m============================================================[0m
+
+[1;36m[INFO][0m Removing all previous Cargo build artifacts...
+[1;32m[PASS][0m cargo clean
+
+[1;36m[INFO][0m Checking Rust formatting...
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/cli.rs:1:
+ use clap::Parser;
+ use std::net::Ipv4Addr;
+ 
+[31m-use crate::constants::{
+(B[m[31m-    DEFAULT_PAYLOAD_SIZE,
+(B[m[31m-    DEFAULT_SWEEP_CONCURRENCY,
+(B[m[31m-};
+(B[m[32m+use crate::constants::{DEFAULT_PAYLOAD_SIZE, DEFAULT_SWEEP_CONCURRENCY};
+(B[m 
+ #[derive(Parser, Debug)]
+ #[command(
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/constants.rs:7:
+ pub const DEFAULT_SWEEP_TIMEOUT_MILLISECONDS: u64 = 500;
+ pub const DEFAULT_SWEEP_INTERVAL_MILLISECONDS: u64 = 10;
+ pub const DEFAULT_SWEEP_CONCURRENCY: usize = 16;
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/dns.rs:29:
+         return None;
+     }
+ 
+[31m-    let hostname = unsafe {
+(B[m[31m-        std::ffi::CStr::from_ptr(hostname.as_ptr())
+(B[m[31m-    };
+(B[m[32m+    let hostname = unsafe { std::ffi::CStr::from_ptr(hostname.as_ptr()) };
+(B[m 
+[31m-    Some(
+(B[m[31m-        hostname
+(B[m[31m-            .to_string_lossy()
+(B[m[31m-            .into_owned()
+(B[m[31m-    )
+(B[m[32m+    Some(hostname.to_string_lossy().into_owned())
+(B[m }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/constants.rs:1:
+ pub const ICMP_ECHO_REPLY: u8 = 0;
+ pub const ICMP_ECHO_REQUEST: u8 = 8;
+ pub const ICMP_HEADER_SIZE: usize = 8;
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:4:
+ 
+ use crate::ipv4::constants::ICMP_HEADER_SIZE;
+ 
+[31m-use crate::types::{
+(B[m[31m-    PingResult,
+(B[m[31m-    QueuedIcmpError,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingResult, QueuedIcmpError};
+(B[m 
+[31m-pub fn classify_network_error(
+(B[m[31m-    error: io::Error,
+(B[m[31m-) -> PingResult {
+(B[m[32m+pub fn classify_network_error(error: io::Error) -> PingResult {
+(B[m     match error.raw_os_error() {
+[31m-        Some(code) if code == libc::ENETUNREACH => {
+(B[m[31m-            PingResult::NetworkUnreachable {
+(B[m[31m-                from: None,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        Some(code) if code == libc::ENETUNREACH => PingResult::NetworkUnreachable { from: None },
+(B[m 
+[31m-        Some(code)
+(B[m[31m-            if code == libc::EHOSTUNREACH
+(B[m[31m-                || code == libc::EHOSTDOWN =>
+(B[m[31m-        {
+(B[m[31m-            PingResult::HostUnreachable {
+(B[m[31m-                from: None,
+(B[m[31m-            }
+(B[m[32m+        Some(code) if code == libc::EHOSTUNREACH || code == libc::EHOSTDOWN => {
+(B[m[32m+            PingResult::HostUnreachable { from: None }
+(B[m         }
+ 
+[31m-        Some(code) if code == libc::ENETDOWN => {
+(B[m[31m-            PingResult::NetworkDown
+(B[m[31m-        }
+(B[m[32m+        Some(code) if code == libc::ENETDOWN => PingResult::NetworkDown,
+(B[m 
+[31m-        Some(code)
+(B[m[31m-            if code == libc::EACCES
+(B[m[31m-                || code == libc::EPERM =>
+(B[m[31m-        {
+(B[m[31m-            PingResult::PermissionDenied
+(B[m[31m-        }
+(B[m[32m+        Some(code) if code == libc::EACCES || code == libc::EPERM => PingResult::PermissionDenied,
+(B[m 
+[31m-        _ => {
+(B[m[31m-            PingResult::LocalError(
+(B[m[31m-                error.to_string()
+(B[m[31m-            )
+(B[m[31m-        }
+(B[m[32m+        _ => PingResult::LocalError(error.to_string()),
+(B[m     }
+ }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:55:
+ ) -> PingResult {
+     match (icmp_type, icmp_code) {
+         // Destination Unreachable
+[31m-        (3, 0) => {
+(B[m[31m-            PingResult::NetworkUnreachable {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 0) => PingResult::NetworkUnreachable { from },
+(B[m 
+[31m-        (3, 1) => {
+(B[m[31m-            PingResult::HostUnreachable {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 1) => PingResult::HostUnreachable { from },
+(B[m 
+[31m-        (3, 2) => {
+(B[m[31m-            PingResult::ProtocolUnreachable {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 2) => PingResult::ProtocolUnreachable { from },
+(B[m 
+[31m-        (3, 3) => {
+(B[m[31m-            PingResult::PortUnreachable {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 3) => PingResult::PortUnreachable { from },
+(B[m 
+[31m-        (3, 4) => {
+(B[m[31m-            PingResult::FragmentationNeeded {
+(B[m[31m-                from,
+(B[m[31m-                mtu: if info > 0 {
+(B[m[31m-                    Some(info)
+(B[m[31m-                } else {
+(B[m[31m-                    None
+(B[m[31m-                },
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 4) => PingResult::FragmentationNeeded {
+(B[m[32m+            from,
+(B[m[32m+            mtu: if info > 0 { Some(info) } else { None },
+(B[m[32m+        },
+(B[m 
+[31m-        (3, 5) => {
+(B[m[31m-            PingResult::SourceRouteFailed {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 5) => PingResult::SourceRouteFailed { from },
+(B[m 
+         // Administratively prohibited variants
+[31m-        (3, 9)
+(B[m[31m-        | (3, 10)
+(B[m[31m-        | (3, 13) => {
+(B[m[31m-            PingResult::AdministrativelyProhibited {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (3, 9) | (3, 10) | (3, 13) => PingResult::AdministrativelyProhibited { from },
+(B[m 
+         // Time Exceeded
+[31m-        (11, 0)
+(B[m[31m-        | (11, 1) => {
+(B[m[31m-            PingResult::TimeExceeded {
+(B[m[31m-                from,
+(B[m[31m-                rtt: None,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (11, 0) | (11, 1) => PingResult::TimeExceeded { from, rtt: None },
+(B[m 
+         // Parameter Problem
+[31m-        (12, _) => {
+(B[m[31m-            PingResult::ParameterProblem {
+(B[m[31m-                from,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        (12, _) => PingResult::ParameterProblem { from },
+(B[m 
+[31m-        _ => {
+(B[m[31m-            PingResult::IcmpError {
+(B[m[31m-                from,
+(B[m[31m-                icmp_type,
+(B[m[31m-                icmp_code,
+(B[m[31m-            }
+(B[m[31m-        }
+(B[m[32m+        _ => PingResult::IcmpError {
+(B[m[32m+            from,
+(B[m[32m+            icmp_type,
+(B[m[32m+            icmp_code,
+(B[m[32m+        },
+(B[m     }
+ }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:134:
+[31m-pub fn read_error_queue(
+(B[m[31m-    fd: i32,
+(B[m[31m-) -> Option<QueuedIcmpError> {
+(B[m[32m+pub fn read_error_queue(fd: i32) -> Option<QueuedIcmpError> {
+(B[m     let mut data = [0u8; 512];
+ 
+     let mut iov = libc::iovec {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:140:
+[31m-        iov_base:
+(B[m[31m-            data.as_mut_ptr()
+(B[m[31m-                as *mut libc::c_void,
+(B[m[32m+        iov_base: data.as_mut_ptr() as *mut libc::c_void,
+(B[m 
+         iov_len: data.len(),
+     };
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:146:
+ 
+[31m-    let mut source: libc::sockaddr_in =
+(B[m[31m-        unsafe { mem::zeroed() };
+(B[m[32m+    let mut source: libc::sockaddr_in = unsafe { mem::zeroed() };
+(B[m 
+     #[repr(align(16))]
+     struct ErrorControlBuffer {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:152:
+         bytes: [u8; 256],
+     }
+ 
+[31m-    let mut control = ErrorControlBuffer {
+(B[m[31m-        bytes: [0u8; 256],
+(B[m[31m-    };
+(B[m[32m+    let mut control = ErrorControlBuffer { bytes: [0u8; 256] };
+(B[m 
+[31m-    let mut message: libc::msghdr =
+(B[m[31m-        unsafe { mem::zeroed() };
+(B[m[32m+    let mut message: libc::msghdr = unsafe { mem::zeroed() };
+(B[m 
+[31m-    message.msg_name =
+(B[m[31m-        &mut source as *mut libc::sockaddr_in
+(B[m[31m-            as *mut libc::c_void;
+(B[m[32m+    message.msg_name = &mut source as *mut libc::sockaddr_in as *mut libc::c_void;
+(B[m 
+[31m-    message.msg_namelen =
+(B[m[31m-        mem::size_of::<libc::sockaddr_in>()
+(B[m[31m-            as libc::socklen_t;
+(B[m[32m+    message.msg_namelen = mem::size_of::<libc::sockaddr_in>() as libc::socklen_t;
+(B[m 
+     message.msg_iov = &mut iov;
+     message.msg_iovlen = 1;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:172:
+ 
+[31m-    message.msg_control =
+(B[m[31m-        control.bytes.as_mut_ptr()
+(B[m[31m-            as *mut libc::c_void;
+(B[m[32m+    message.msg_control = control.bytes.as_mut_ptr() as *mut libc::c_void;
+(B[m 
+[31m-    message.msg_controllen =
+(B[m[31m-        control.bytes.len();
+(B[m[32m+    message.msg_controllen = control.bytes.len();
+(B[m 
+[31m-    let received = unsafe {
+(B[m[31m-        libc::recvmsg(
+(B[m[31m-            fd,
+(B[m[31m-            &mut message,
+(B[m[31m-            libc::MSG_ERRQUEUE
+(B[m[31m-                | libc::MSG_DONTWAIT,
+(B[m[31m-        )
+(B[m[31m-    };
+(B[m[32m+    let received =
+(B[m[32m+        unsafe { libc::recvmsg(fd, &mut message, libc::MSG_ERRQUEUE | libc::MSG_DONTWAIT) };
+(B[m 
+     if received < 0 {
+         return None;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:196:
+         return None;
+     }
+ 
+[31m-    let sequence =
+(B[m[31m-        u16::from_be_bytes([
+(B[m[31m-            data[6],
+(B[m[31m-            data[7],
+(B[m[31m-        ]);
+(B[m[32m+    let sequence = u16::from_be_bytes([data[6], data[7]]);
+(B[m 
+     unsafe {
+[31m-        let mut cmsg =
+(B[m[31m-            libc::CMSG_FIRSTHDR(
+(B[m[31m-                &message as *const libc::msghdr
+(B[m[31m-            );
+(B[m[32m+        let mut cmsg = libc::CMSG_FIRSTHDR(&message as *const libc::msghdr);
+(B[m 
+         while !cmsg.is_null() {
+[31m-            if (*cmsg).cmsg_level
+(B[m[31m-                == libc::IPPROTO_IP
+(B[m[31m-                && (*cmsg).cmsg_type
+(B[m[31m-                    == libc::IP_RECVERR
+(B[m[31m-            {
+(B[m[31m-                let error_ptr =
+(B[m[31m-                    libc::CMSG_DATA(cmsg)
+(B[m[31m-                        as *const libc::sock_extended_err;
+(B[m[32m+            if (*cmsg).cmsg_level == libc::IPPROTO_IP && (*cmsg).cmsg_type == libc::IP_RECVERR {
+(B[m[32m+                let error_ptr = libc::CMSG_DATA(cmsg) as *const libc::sock_extended_err;
+(B[m 
+                 if error_ptr.is_null() {
+                     return None;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:223:
+                 }
+ 
+[31m-                let extended_error =
+(B[m[31m-                    std::ptr::read_unaligned(
+(B[m[31m-                        error_ptr
+(B[m[31m-                    );
+(B[m[32m+                let extended_error = std::ptr::read_unaligned(error_ptr);
+(B[m 
+[31m-                if extended_error.ee_origin
+(B[m[31m-                    != libc::SO_EE_ORIGIN_ICMP
+(B[m[31m-                {
+(B[m[31m-                    cmsg =
+(B[m[31m-                        libc::CMSG_NXTHDR(
+(B[m[31m-                            &message
+(B[m[31m-                                as *const libc::msghdr,
+(B[m[31m-                            cmsg,
+(B[m[31m-                        );
+(B[m[32m+                if extended_error.ee_origin != libc::SO_EE_ORIGIN_ICMP {
+(B[m[32m+                    cmsg = libc::CMSG_NXTHDR(&message as *const libc::msghdr, cmsg);
+(B[m 
+                     continue;
+                 }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:242:
+ 
+[31m-                let offender_ptr =
+(B[m[31m-                    libc::SO_EE_OFFENDER(
+(B[m[31m-                        error_ptr
+(B[m[31m-                    );
+(B[m[32m+                let offender_ptr = libc::SO_EE_OFFENDER(error_ptr);
+(B[m 
+[31m-                let from =
+(B[m[31m-                    if !offender_ptr.is_null()
+(B[m[31m-                        && (*offender_ptr).sa_family
+(B[m[31m-                            as i32
+(B[m[31m-                            == libc::AF_INET
+(B[m[31m-                    {
+(B[m[31m-                        let offender =
+(B[m[31m-                            &*(
+(B[m[31m-                                offender_ptr
+(B[m[31m-                                    as *const libc::sockaddr_in
+(B[m[31m-                            );
+(B[m[32m+                let from = if !offender_ptr.is_null()
+(B[m[32m+                    && (*offender_ptr).sa_family as i32 == libc::AF_INET
+(B[m[32m+                {
+(B[m[32m+                    let offender = &*(offender_ptr as *const libc::sockaddr_in);
+(B[m 
+[31m-                        Some(
+(B[m[31m-                            Ipv4Addr::from(
+(B[m[31m-                                offender
+(B[m[31m-                                    .sin_addr
+(B[m[31m-                                    .s_addr
+(B[m[31m-                                    .to_ne_bytes()
+(B[m[31m-                            )
+(B[m[31m-                        )
+(B[m[31m-                    } else {
+(B[m[31m-                        None
+(B[m[31m-                    };
+(B[m[32m+                    Some(Ipv4Addr::from(offender.sin_addr.s_addr.to_ne_bytes()))
+(B[m[32m+                } else {
+(B[m[32m+                    None
+(B[m[32m+                };
+(B[m 
+[31m-                let result =
+(B[m[31m-                    classify_icmp_error(
+(B[m[31m-                        extended_error.ee_type,
+(B[m[31m-                        extended_error.ee_code,
+(B[m[31m-                        from,
+(B[m[31m-                        extended_error.ee_info,
+(B[m[31m-                    );
+(B[m[31m-
+(B[m[31m-                return Some(
+(B[m[31m-                    QueuedIcmpError {
+(B[m[31m-                        sequence,
+(B[m[31m-                        result,
+(B[m[31m-                    }
+(B[m[32m+                let result = classify_icmp_error(
+(B[m[32m+                    extended_error.ee_type,
+(B[m[32m+                    extended_error.ee_code,
+(B[m[32m+                    from,
+(B[m[32m+                    extended_error.ee_info,
+(B[m                 );
+[32m+
+(B[m[32m+                return Some(QueuedIcmpError { sequence, result });
+(B[m             }
+ 
+[31m-            cmsg =
+(B[m[31m-                libc::CMSG_NXTHDR(
+(B[m[31m-                    &message
+(B[m[31m-                        as *const libc::msghdr,
+(B[m[31m-                    cmsg,
+(B[m[31m-                );
+(B[m[32m+            cmsg = libc::CMSG_NXTHDR(&message as *const libc::msghdr, cmsg);
+(B[m         }
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/errors.rs:297:
+     None
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:1:
+ use std::io;
+ use std::net::Ipv4Addr;
+ 
+[31m-use crate::types::{
+(B[m[31m-    Ipv4Interface,
+(B[m[31m-    SweepRange,
+(B[m[31m-};
+(B[m[32m+use crate::types::{Ipv4Interface, SweepRange};
+(B[m 
+[31m-pub fn get_ipv4_interfaces(
+(B[m[31m-    requested_interface: Option<&str>,
+(B[m[31m-) -> io::Result<Vec<Ipv4Interface>> {
+(B[m[31m-    let mut ifaddrs: *mut libc::ifaddrs =
+(B[m[31m-        std::ptr::null_mut();
+(B[m[32m+pub fn get_ipv4_interfaces(requested_interface: Option<&str>) -> io::Result<Vec<Ipv4Interface>> {
+(B[m[32m+    let mut ifaddrs: *mut libc::ifaddrs = std::ptr::null_mut();
+(B[m 
+[31m-    if unsafe {
+(B[m[31m-        libc::getifaddrs(&mut ifaddrs)
+(B[m[31m-    } != 0
+(B[m[31m-    {
+(B[m[31m-        return Err(
+(B[m[31m-            io::Error::last_os_error()
+(B[m[31m-        );
+(B[m[32m+    if unsafe { libc::getifaddrs(&mut ifaddrs) } != 0 {
+(B[m[32m+        return Err(io::Error::last_os_error());
+(B[m     }
+ 
+     let mut interfaces = Vec::new();
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:26:
+     let mut current = ifaddrs;
+ 
+     while !current.is_null() {
+[31m-        let interface =
+(B[m[31m-            unsafe { &*current };
+(B[m[32m+        let interface = unsafe { &*current };
+(B[m 
+         if !interface.ifa_addr.is_null()
+[31m-            && unsafe {
+(B[m[31m-                (*interface.ifa_addr).sa_family
+(B[m[31m-                    as i32
+(B[m[31m-                    == libc::AF_INET
+(B[m[31m-            }
+(B[m[32m+            && unsafe { (*interface.ifa_addr).sa_family as i32 == libc::AF_INET }
+(B[m         {
+[31m-            let flags =
+(B[m[31m-                interface.ifa_flags as i32;
+(B[m[32m+            let flags = interface.ifa_flags as i32;
+(B[m 
+[31m-            let is_up =
+(B[m[31m-                flags & libc::IFF_UP != 0;
+(B[m[32m+            let is_up = flags & libc::IFF_UP != 0;
+(B[m 
+[31m-            let supports_broadcast =
+(B[m[31m-                flags & libc::IFF_BROADCAST != 0;
+(B[m[32m+            let supports_broadcast = flags & libc::IFF_BROADCAST != 0;
+(B[m 
+[31m-            let is_loopback =
+(B[m[31m-                flags & libc::IFF_LOOPBACK != 0;
+(B[m[32m+            let is_loopback = flags & libc::IFF_LOOPBACK != 0;
+(B[m 
+[31m-            if is_up
+(B[m[31m-                && supports_broadcast
+(B[m[31m-                && !is_loopback
+(B[m[31m-            {
+(B[m[31m-                let name = unsafe {
+(B[m[31m-                    std::ffi::CStr::from_ptr(
+(B[m[31m-                        interface.ifa_name
+(B[m[31m-                    )
+(B[m[31m-                }
+(B[m[31m-                .to_string_lossy()
+(B[m[31m-                .into_owned();
+(B[m[32m+            if is_up && supports_broadcast && !is_loopback {
+(B[m[32m+                let name = unsafe { std::ffi::CStr::from_ptr(interface.ifa_name) }
+(B[m[32m+                    .to_string_lossy()
+(B[m[32m+                    .into_owned();
+(B[m 
+[31m-                if requested_interface
+(B[m[31m-                    .is_none_or(
+(B[m[31m-                        |requested| {
+(B[m[31m-                            requested == name
+(B[m[31m-                        }
+(B[m[31m-                    )
+(B[m[31m-                {
+(B[m[31m-                    let address =
+(B[m[31m-                        unsafe {
+(B[m[31m-                            &*(
+(B[m[31m-                                interface.ifa_addr
+(B[m[31m-                                    as *const libc::sockaddr_in
+(B[m[31m-                            )
+(B[m[31m-                        };
+(B[m[32m+                if requested_interface.is_none_or(|requested| requested == name) {
+(B[m[32m+                    let address = unsafe { &*(interface.ifa_addr as *const libc::sockaddr_in) };
+(B[m 
+[31m-                    let netmask =
+(B[m[31m-                        unsafe {
+(B[m[31m-                            &*(
+(B[m[31m-                                interface.ifa_netmask
+(B[m[31m-                                    as *const libc::sockaddr_in
+(B[m[31m-                            )
+(B[m[31m-                        };
+(B[m[32m+                    let netmask = unsafe { &*(interface.ifa_netmask as *const libc::sockaddr_in) };
+(B[m 
+[31m-                    let ip =
+(B[m[31m-                        u32::from_be_bytes(
+(B[m[31m-                            address
+(B[m[31m-                                .sin_addr
+(B[m[31m-                                .s_addr
+(B[m[31m-                                .to_ne_bytes()
+(B[m[31m-                        );
+(B[m[32m+                    let ip = u32::from_be_bytes(address.sin_addr.s_addr.to_ne_bytes());
+(B[m 
+[31m-                    let mask =
+(B[m[31m-                        u32::from_be_bytes(
+(B[m[31m-                            netmask
+(B[m[31m-                                .sin_addr
+(B[m[31m-                                .s_addr
+(B[m[31m-                                .to_ne_bytes()
+(B[m[31m-                        );
+(B[m[32m+                    let mask = u32::from_be_bytes(netmask.sin_addr.s_addr.to_ne_bytes());
+(B[m 
+[31m-                    let network =
+(B[m[31m-                        ip & mask;
+(B[m[32m+                    let network = ip & mask;
+(B[m 
+[31m-                    let broadcast =
+(B[m[31m-                        ip | !mask;
+(B[m[32m+                    let broadcast = ip | !mask;
+(B[m 
+[31m-                    let prefix_length =
+(B[m[31m-                        mask.count_ones() as u8;
+(B[m[32m+                    let prefix_length = mask.count_ones() as u8;
+(B[m 
+[31m-                    interfaces.push(
+(B[m[31m-                        Ipv4Interface {
+(B[m[31m-                            name,
+(B[m[31m-                            address:
+(B[m[31m-                                Ipv4Addr::from(ip),
+(B[m[32m+                    interfaces.push(Ipv4Interface {
+(B[m[32m+                        name,
+(B[m[32m+                        address: Ipv4Addr::from(ip),
+(B[m 
+[31m-                            network:
+(B[m[31m-                                Ipv4Addr::from(
+(B[m[31m-                                    network
+(B[m[31m-                                ),
+(B[m[32m+                        network: Ipv4Addr::from(network),
+(B[m 
+[31m-                            broadcast:
+(B[m[31m-                                Ipv4Addr::from(
+(B[m[31m-                                    broadcast
+(B[m[31m-                                ),
+(B[m[32m+                        broadcast: Ipv4Addr::from(broadcast),
+(B[m 
+[31m-                            prefix_length,
+(B[m[31m-                        }
+(B[m[31m-                    );
+(B[m[32m+                        prefix_length,
+(B[m[32m+                    });
+(B[m                 }
+             }
+         }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:133:
+ 
+[31m-        current =
+(B[m[31m-            unsafe {
+(B[m[31m-                (*current).ifa_next
+(B[m[31m-            };
+(B[m[32m+        current = unsafe { (*current).ifa_next };
+(B[m     }
+ 
+     unsafe {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:144:
+     Ok(interfaces)
+ }
+ 
+[31m-pub fn prefix_from_netmask(
+(B[m[31m-    mask: Ipv4Addr,
+(B[m[31m-) -> Option<u8> {
+(B[m[32m+pub fn prefix_from_netmask(mask: Ipv4Addr) -> Option<u8> {
+(B[m     let mask = u32::from(mask);
+ 
+     let inverted = !mask;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:153:
+ 
+[31m-    if inverted
+(B[m[31m-        & inverted.wrapping_add(1)
+(B[m[31m-        != 0
+(B[m[31m-    {
+(B[m[32m+    if inverted & inverted.wrapping_add(1) != 0 {
+(B[m         return None;
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:161:
+     Some(mask.count_ones() as u8)
+ }
+ 
+[31m-pub fn range_from_interface(
+(B[m[31m-    interface: &Ipv4Interface,
+(B[m[31m-) -> io::Result<SweepRange> {
+(B[m[32m+pub fn range_from_interface(interface: &Ipv4Interface) -> io::Result<SweepRange> {
+(B[m     if interface.prefix_length >= 31 {
+[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                format!(
+(B[m[31m-                    "{}/{} is not supported for sweep mode",
+(B[m[31m-                    interface.network,
+(B[m[31m-                    interface.prefix_length
+(B[m[31m-                ),
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            format!(
+(B[m[32m+                "{}/{} is not supported for sweep mode",
+(B[m[32m+                interface.network, interface.prefix_length
+(B[m[32m+            ),
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    let network =
+(B[m[31m-        u32::from(interface.network);
+(B[m[32m+    let network = u32::from(interface.network);
+(B[m 
+[31m-    let broadcast =
+(B[m[31m-        u32::from(interface.broadcast);
+(B[m[32m+    let broadcast = u32::from(interface.broadcast);
+(B[m 
+[31m-    Ok(
+(B[m[31m-        SweepRange {
+(B[m[31m-            first:
+(B[m[31m-                Ipv4Addr::from(
+(B[m[31m-                    network + 1
+(B[m[31m-                ),
+(B[m[32m+    Ok(SweepRange {
+(B[m[32m+        first: Ipv4Addr::from(network + 1),
+(B[m 
+[31m-            last:
+(B[m[31m-                Ipv4Addr::from(
+(B[m[31m-                    broadcast - 1
+(B[m[31m-                ),
+(B[m[32m+        last: Ipv4Addr::from(broadcast - 1),
+(B[m 
+[31m-            network:
+(B[m[31m-                Some(interface.network),
+(B[m[32m+        network: Some(interface.network),
+(B[m 
+[31m-            prefix_length:
+(B[m[31m-                Some(
+(B[m[31m-                    interface.prefix_length
+(B[m[31m-                ),
+(B[m[32m+        prefix_length: Some(interface.prefix_length),
+(B[m 
+[31m-            interface_name:
+(B[m[31m-                Some(
+(B[m[31m-                    interface.name.clone()
+(B[m[31m-                ),
+(B[m[31m-        }
+(B[m[31m-    )
+(B[m[32m+        interface_name: Some(interface.name.clone()),
+(B[m[32m+    })
+(B[m }
+ 
+[31m-pub fn range_from_low_high(
+(B[m[31m-    low: Ipv4Addr,
+(B[m[31m-    high: Ipv4Addr,
+(B[m[31m-) -> io::Result<SweepRange> {
+(B[m[31m-    if u32::from(low)
+(B[m[31m-        > u32::from(high)
+(B[m[31m-    {
+(B[m[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                "LOW address must not be greater than HIGH address",
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+pub fn range_from_low_high(low: Ipv4Addr, high: Ipv4Addr) -> io::Result<SweepRange> {
+(B[m[32m+    if u32::from(low) > u32::from(high) {
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "LOW address must not be greater than HIGH address",
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    Ok(
+(B[m[31m-        SweepRange {
+(B[m[31m-            first: low,
+(B[m[31m-            last: high,
+(B[m[31m-            network: None,
+(B[m[31m-            prefix_length: None,
+(B[m[31m-            interface_name: None,
+(B[m[31m-        }
+(B[m[31m-    )
+(B[m[32m+    Ok(SweepRange {
+(B[m[32m+        first: low,
+(B[m[32m+        last: high,
+(B[m[32m+        network: None,
+(B[m[32m+        prefix_length: None,
+(B[m[32m+        interface_name: None,
+(B[m[32m+    })
+(B[m }
+ 
+[31m-pub fn range_from_network_mask(
+(B[m[31m-    address: Ipv4Addr,
+(B[m[31m-    mask: Ipv4Addr,
+(B[m[31m-) -> io::Result<SweepRange> {
+(B[m[31m-    let prefix_length =
+(B[m[31m-        prefix_from_netmask(mask)
+(B[m[31m-            .ok_or_else(|| {
+(B[m[31m-                io::Error::new(
+(B[m[31m-                    io::ErrorKind::InvalidInput,
+(B[m[31m-                    format!(
+(B[m[31m-                        "{mask} is not a valid contiguous IPv4 subnet mask"
+(B[m[31m-                    ),
+(B[m[31m-                )
+(B[m[31m-            })?;
+(B[m[32m+pub fn range_from_network_mask(address: Ipv4Addr, mask: Ipv4Addr) -> io::Result<SweepRange> {
+(B[m[32m+    let prefix_length = prefix_from_netmask(mask).ok_or_else(|| {
+(B[m[32m+        io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            format!("{mask} is not a valid contiguous IPv4 subnet mask"),
+(B[m[32m+        )
+(B[m[32m+    })?;
+(B[m 
+     if prefix_length >= 31 {
+[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                "/31 and /32 networks are not supported for sweep mode",
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "/31 and /32 networks are not supported for sweep mode",
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    let address_value =
+(B[m[31m-        u32::from(address);
+(B[m[32m+    let address_value = u32::from(address);
+(B[m 
+[31m-    let mask_value =
+(B[m[31m-        u32::from(mask);
+(B[m[32m+    let mask_value = u32::from(mask);
+(B[m 
+[31m-    let network =
+(B[m[31m-        address_value & mask_value;
+(B[m[32m+    let network = address_value & mask_value;
+(B[m 
+[31m-    let broadcast =
+(B[m[31m-        network | !mask_value;
+(B[m[32m+    let broadcast = network | !mask_value;
+(B[m 
+[31m-    Ok(
+(B[m[31m-        SweepRange {
+(B[m[31m-            first:
+(B[m[31m-                Ipv4Addr::from(
+(B[m[31m-                    network + 1
+(B[m[31m-                ),
+(B[m[32m+    Ok(SweepRange {
+(B[m[32m+        first: Ipv4Addr::from(network + 1),
+(B[m 
+[31m-            last:
+(B[m[31m-                Ipv4Addr::from(
+(B[m[31m-                    broadcast - 1
+(B[m[31m-                ),
+(B[m[32m+        last: Ipv4Addr::from(broadcast - 1),
+(B[m 
+[31m-            network:
+(B[m[31m-                Some(
+(B[m[31m-                    Ipv4Addr::from(
+(B[m[31m-                        network
+(B[m[31m-                    )
+(B[m[31m-                ),
+(B[m[32m+        network: Some(Ipv4Addr::from(network)),
+(B[m 
+[31m-            prefix_length:
+(B[m[31m-                Some(prefix_length),
+(B[m[32m+        prefix_length: Some(prefix_length),
+(B[m 
+[31m-            interface_name:
+(B[m[31m-                None,
+(B[m[31m-        }
+(B[m[31m-    )
+(B[m[32m+        interface_name: None,
+(B[m[32m+    })
+(B[m }
+ 
+[31m-pub fn range_from_cidr(
+(B[m[31m-    cidr: &str,
+(B[m[31m-) -> io::Result<SweepRange> {
+(B[m[31m-    let (
+(B[m[31m-        address_text,
+(B[m[31m-        prefix_text,
+(B[m[31m-    ) =
+(B[m[31m-        cidr.split_once('/')
+(B[m[31m-            .ok_or_else(|| {
+(B[m[31m-                io::Error::new(
+(B[m[31m-                    io::ErrorKind::InvalidInput,
+(B[m[31m-                    "CIDR must be written as ADDRESS/PREFIX",
+(B[m[31m-                )
+(B[m[31m-            })?;
+(B[m[32m+pub fn range_from_cidr(cidr: &str) -> io::Result<SweepRange> {
+(B[m[32m+    let (address_text, prefix_text) = cidr.split_once('/').ok_or_else(|| {
+(B[m[32m+        io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "CIDR must be written as ADDRESS/PREFIX",
+(B[m[32m+        )
+(B[m[32m+    })?;
+(B[m 
+[31m-    let address: Ipv4Addr =
+(B[m[31m-        address_text
+(B[m[31m-            .parse()
+(B[m[31m-            .map_err(|_| {
+(B[m[31m-                io::Error::new(
+(B[m[31m-                    io::ErrorKind::InvalidInput,
+(B[m[31m-                    format!(
+(B[m[31m-                        "Invalid IPv4 address: {address_text}"
+(B[m[31m-                    ),
+(B[m[31m-                )
+(B[m[31m-            })?;
+(B[m[32m+    let address: Ipv4Addr = address_text.parse().map_err(|_| {
+(B[m[32m+        io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            format!("Invalid IPv4 address: {address_text}"),
+(B[m[32m+        )
+(B[m[32m+    })?;
+(B[m 
+[31m-    let prefix: u8 =
+(B[m[31m-        prefix_text
+(B[m[31m-            .parse()
+(B[m[31m-            .map_err(|_| {
+(B[m[31m-                io::Error::new(
+(B[m[31m-                    io::ErrorKind::InvalidInput,
+(B[m[31m-                    format!(
+(B[m[31m-                        "Invalid prefix length: {prefix_text}"
+(B[m[31m-                    ),
+(B[m[31m-                )
+(B[m[31m-            })?;
+(B[m[32m+    let prefix: u8 = prefix_text.parse().map_err(|_| {
+(B[m[32m+        io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            format!("Invalid prefix length: {prefix_text}"),
+(B[m[32m+        )
+(B[m[32m+    })?;
+(B[m 
+     if prefix > 32 {
+[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                "IPv4 prefix length must be between 0 and 32",
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "IPv4 prefix length must be between 0 and 32",
+(B[m[32m+        ));
+(B[m     }
+ 
+     if prefix >= 31 {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:353:
+[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                "/31 and /32 networks are not supported for sweep mode",
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "/31 and /32 networks are not supported for sweep mode",
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    let mask =
+(B[m[31m-        if prefix == 0 {
+(B[m[31m-            0
+(B[m[31m-        } else {
+(B[m[31m-            u32::MAX
+(B[m[31m-                << (32 - prefix)
+(B[m[31m-        };
+(B[m[32m+    let mask = if prefix == 0 {
+(B[m[32m+        0
+(B[m[32m+    } else {
+(B[m[32m+        u32::MAX << (32 - prefix)
+(B[m[32m+    };
+(B[m 
+[31m-    range_from_network_mask(
+(B[m[31m-        address,
+(B[m[31m-        Ipv4Addr::from(mask),
+(B[m[31m-    )
+(B[m[32m+    range_from_network_mask(address, Ipv4Addr::from(mask))
+(B[m }
+ 
+[31m-pub fn range_is_rfc1918(
+(B[m[31m-    range: &SweepRange,
+(B[m[31m-) -> bool {
+(B[m[31m-    let first =
+(B[m[31m-        u32::from(range.first);
+(B[m[32m+pub fn range_is_rfc1918(range: &SweepRange) -> bool {
+(B[m[32m+    let first = u32::from(range.first);
+(B[m 
+[31m-    let last =
+(B[m[31m-        u32::from(range.last);
+(B[m[32m+    let last = u32::from(range.last);
+(B[m 
+     let private_ranges = [
+         (
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:386:
+[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    10, 0, 0, 0
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[31m-
+(B[m[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    10, 255, 255, 255
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[32m+            u32::from(Ipv4Addr::new(10, 0, 0, 0)),
+(B[m[32m+            u32::from(Ipv4Addr::new(10, 255, 255, 255)),
+(B[m         ),
+[31m-
+(B[m         (
+[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    172, 16, 0, 0
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[31m-
+(B[m[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    172, 31, 255, 255
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[32m+            u32::from(Ipv4Addr::new(172, 16, 0, 0)),
+(B[m[32m+            u32::from(Ipv4Addr::new(172, 31, 255, 255)),
+(B[m         ),
+[31m-
+(B[m         (
+[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    192, 168, 0, 0
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[31m-
+(B[m[31m-            u32::from(
+(B[m[31m-                Ipv4Addr::new(
+(B[m[31m-                    192, 168, 255, 255
+(B[m[31m-                )
+(B[m[31m-            ),
+(B[m[32m+            u32::from(Ipv4Addr::new(192, 168, 0, 0)),
+(B[m[32m+            u32::from(Ipv4Addr::new(192, 168, 255, 255)),
+(B[m         ),
+     ];
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:428:
+     private_ranges
+         .iter()
+[31m-        .any(
+(B[m[31m-            |(start, end)| {
+(B[m[31m-                first >= *start
+(B[m[31m-                    && last <= *end
+(B[m[31m-            }
+(B[m[31m-        )
+(B[m[32m+        .any(|(start, end)| first >= *start && last <= *end)
+(B[m }
+ 
+[31m-pub fn sweep_range_size(
+(B[m[31m-    range: &SweepRange,
+(B[m[31m-) -> u64 {
+(B[m[31m-    let first =
+(B[m[31m-        u32::from(range.first)
+(B[m[31m-            as u64;
+(B[m[32m+pub fn sweep_range_size(range: &SweepRange) -> u64 {
+(B[m[32m+    let first = u32::from(range.first) as u64;
+(B[m 
+[31m-    let last =
+(B[m[31m-        u32::from(range.last)
+(B[m[31m-            as u64;
+(B[m[32m+    let last = u32::from(range.last) as u64;
+(B[m 
+     last - first + 1
+ }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/interface.rs:451:
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/mod.rs:3:
+ pub mod interface;
+ pub mod packet;
+ pub mod socket;
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/packet.rs:1:
+[31m-use crate::ipv4::constants::{
+(B[m[31m-    ICMP_ECHO_REQUEST,
+(B[m[31m-    ICMP_HEADER_SIZE,
+(B[m[31m-};
+(B[m[32m+use crate::ipv4::constants::{ICMP_ECHO_REQUEST, ICMP_HEADER_SIZE};
+(B[m 
+ pub fn checksum(data: &[u8]) -> u16 {
+     let mut sum: u32 = 0;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/packet.rs:24:
+     !(sum as u16)
+ }
+ 
+[31m-pub fn build_echo_request(
+(B[m[31m-    sequence: u16,
+(B[m[31m-    payload_size: usize,
+(B[m[31m-) -> Vec<u8> {
+(B[m[31m-    let mut packet =
+(B[m[31m-        vec![0u8; ICMP_HEADER_SIZE + payload_size];
+(B[m[32m+pub fn build_echo_request(sequence: u16, payload_size: usize) -> Vec<u8> {
+(B[m[32m+    let mut packet = vec![0u8; ICMP_HEADER_SIZE + payload_size];
+(B[m 
+     packet[0] = ICMP_ECHO_REQUEST;
+     packet[1] = 0;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/packet.rs:40:
+     packet[4] = 0;
+     packet[5] = 0;
+ 
+[31m-    packet[6..8].copy_from_slice(
+(B[m[31m-        &sequence.to_be_bytes()
+(B[m[31m-    );
+(B[m[32m+    packet[6..8].copy_from_slice(&sequence.to_be_bytes());
+(B[m 
+[31m-    for (i, byte) in packet[ICMP_HEADER_SIZE..]
+(B[m[31m-        .iter_mut()
+(B[m[31m-        .enumerate()
+(B[m[31m-    {
+(B[m[32m+    for (i, byte) in packet[ICMP_HEADER_SIZE..].iter_mut().enumerate() {
+(B[m         *byte = (i & 0xff) as u8;
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/packet.rs:54:
+     let csum = checksum(&packet);
+ 
+[31m-    packet[2..4].copy_from_slice(
+(B[m[31m-        &csum.to_be_bytes()
+(B[m[31m-    );
+(B[m[32m+    packet[2..4].copy_from_slice(&csum.to_be_bytes());
+(B[m 
+     packet
+ }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/packet.rs:62:
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:3:
+ use std::net::Ipv4Addr;
+ use std::time::{Duration, Instant};
+ 
+[31m-use crate::ipv4::constants::{
+(B[m[31m-    ICMP_ECHO_REPLY,
+(B[m[31m-    ICMP_HEADER_SIZE,
+(B[m[31m-};
+(B[m[32m+use crate::ipv4::constants::{ICMP_ECHO_REPLY, ICMP_HEADER_SIZE};
+(B[m 
+[31m-use crate::types::{
+(B[m[31m-    PingResult,
+(B[m[31m-    SweepEvent,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingResult, SweepEvent};
+(B[m 
+ // These will come from ipv4/errors.rs,
+ // which we will build next.
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:18:
+[31m-use crate::ipv4::errors::{
+(B[m[31m-    classify_network_error,
+(B[m[31m-    read_error_queue,
+(B[m[31m-};
+(B[m[32m+use crate::ipv4::errors::{classify_network_error, read_error_queue};
+(B[m 
+ #[derive(Debug)]
+ #[repr(align(16))]
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:27:
+ }
+ 
+ pub fn create_ping_socket(timeout: Duration) -> io::Result<i32> {
+[31m-    let fd = unsafe {
+(B[m[31m-        libc::socket(
+(B[m[31m-            libc::AF_INET,
+(B[m[31m-            libc::SOCK_DGRAM,
+(B[m[31m-            libc::IPPROTO_ICMP,
+(B[m[31m-        )
+(B[m[31m-    };
+(B[m[32m+    let fd = unsafe { libc::socket(libc::AF_INET, libc::SOCK_DGRAM, libc::IPPROTO_ICMP) };
+(B[m 
+     if fd < 0 {
+         return Err(io::Error::last_os_error());
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:111:
+     Ok(fd)
+ }
+ 
+[31m-pub fn set_socket_ttl(
+(B[m[31m-    fd: i32,
+(B[m[31m-    ttl: u8,
+(B[m[31m-) -> io::Result<()> {
+(B[m[32m+pub fn set_socket_ttl(fd: i32, ttl: u8) -> io::Result<()> {
+(B[m     let ttl_value: libc::c_int = ttl as libc::c_int;
+ 
+     let result = unsafe {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:134:
+     Ok(())
+ }
+ 
+[31m-pub fn send_echo_request(
+(B[m[31m-    fd: i32,
+(B[m[31m-    target: Ipv4Addr,
+(B[m[31m-    packet: &[u8],
+(B[m[31m-) -> io::Result<()> {
+(B[m[32m+pub fn send_echo_request(fd: i32, target: Ipv4Addr, packet: &[u8]) -> io::Result<()> {
+(B[m     let destination = libc::sockaddr_in {
+         sin_family: libc::AF_INET as libc::sa_family_t,
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:157:
+             packet.as_ptr() as *const libc::c_void,
+             packet.len(),
+             0,
+[31m-            &destination as *const libc::sockaddr_in
+(B[m[31m-                as *const libc::sockaddr,
+(B[m[31m-            mem::size_of::<libc::sockaddr_in>()
+(B[m[31m-                as libc::socklen_t,
+(B[m[32m+            &destination as *const libc::sockaddr_in as *const libc::sockaddr,
+(B[m[32m+            mem::size_of::<libc::sockaddr_in>() as libc::socklen_t,
+(B[m         )
+     };
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:178:
+     Ok(())
+ }
+ 
+[31m-pub fn wait_for_reply(
+(B[m[31m-    fd: i32,
+(B[m[31m-    target: Ipv4Addr,
+(B[m[31m-    sequence: u16,
+(B[m[31m-    start: Instant,
+(B[m[31m-) -> PingResult {
+(B[m[32m+pub fn wait_for_reply(fd: i32, target: Ipv4Addr, sequence: u16, start: Instant) -> PingResult {
+(B[m     let mut buffer = [0u8; 65_535];
+ 
+     loop {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:190:
+[31m-        let mut source: libc::sockaddr_in =
+(B[m[31m-            unsafe { mem::zeroed() };
+(B[m[32m+        let mut source: libc::sockaddr_in = unsafe { mem::zeroed() };
+(B[m 
+         let mut iov = libc::iovec {
+             iov_base: buffer.as_mut_ptr() as *mut libc::c_void,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:195:
+             iov_len: buffer.len(),
+         };
+ 
+[31m-        let mut control = ControlBuffer {
+(B[m[31m-            bytes: [0u8; 64],
+(B[m[31m-        };
+(B[m[32m+        let mut control = ControlBuffer { bytes: [0u8; 64] };
+(B[m 
+[31m-        let mut message: libc::msghdr =
+(B[m[31m-            unsafe { mem::zeroed() };
+(B[m[32m+        let mut message: libc::msghdr = unsafe { mem::zeroed() };
+(B[m 
+[31m-        message.msg_name =
+(B[m[31m-            &mut source as *mut libc::sockaddr_in
+(B[m[31m-                as *mut libc::c_void;
+(B[m[32m+        message.msg_name = &mut source as *mut libc::sockaddr_in as *mut libc::c_void;
+(B[m 
+[31m-        message.msg_namelen =
+(B[m[31m-            mem::size_of::<libc::sockaddr_in>()
+(B[m[31m-                as libc::socklen_t;
+(B[m[32m+        message.msg_namelen = mem::size_of::<libc::sockaddr_in>() as libc::socklen_t;
+(B[m 
+         message.msg_iov = &mut iov;
+         message.msg_iovlen = 1;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:215:
+ 
+[31m-        message.msg_control =
+(B[m[31m-            control.bytes.as_mut_ptr()
+(B[m[31m-                as *mut libc::c_void;
+(B[m[32m+        message.msg_control = control.bytes.as_mut_ptr() as *mut libc::c_void;
+(B[m 
+[31m-        message.msg_controllen =
+(B[m[31m-            control.bytes.len();
+(B[m[32m+        message.msg_controllen = control.bytes.len();
+(B[m 
+[31m-        let received = unsafe {
+(B[m[31m-            libc::recvmsg(
+(B[m[31m-                fd,
+(B[m[31m-                &mut message,
+(B[m[31m-                0,
+(B[m[31m-            )
+(B[m[31m-        };
+(B[m[32m+        let received = unsafe { libc::recvmsg(fd, &mut message, 0) };
+(B[m 
+         if received < 0 {
+             let error = io::Error::last_os_error();
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:236:
+              * or local failure, inspect Linux's extended
+              * socket error queue.
+              */
+[31m-            if let Some(queued_error) =
+(B[m[31m-                read_error_queue(fd)
+(B[m[31m-            {
+(B[m[32m+            if let Some(queued_error) = read_error_queue(fd) {
+(B[m                 if queued_error.sequence != sequence {
+                     continue;
+                 }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:245:
+ 
+[31m-                let mut network_error =
+(B[m[31m-                    queued_error.result;
+(B[m[32m+                let mut network_error = queued_error.result;
+(B[m 
+[31m-                if let PingResult::TimeExceeded {
+(B[m[31m-                    rtt,
+(B[m[31m-                    ..
+(B[m[31m-                } = &mut network_error
+(B[m[31m-                {
+(B[m[32m+                if let PingResult::TimeExceeded { rtt, .. } = &mut network_error {
+(B[m                     *rtt = Some(start.elapsed());
+                 }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:258:
+             }
+ 
+             return match error.kind() {
+[31m-                io::ErrorKind::WouldBlock
+(B[m[31m-                | io::ErrorKind::TimedOut => {
+(B[m[31m-                    PingResult::NoResponse
+(B[m[31m-                }
+(B[m[32m+                io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut => PingResult::NoResponse,
+(B[m 
+                 _ => classify_network_error(error),
+             };
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:268:
+         }
+ 
+[31m-        let packet =
+(B[m[31m-            &buffer[..received as usize];
+(B[m[32m+        let packet = &buffer[..received as usize];
+(B[m 
+         if packet.len() < ICMP_HEADER_SIZE {
+             continue;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:275:
+         }
+ 
+[31m-        let source_ip =
+(B[m[31m-            Ipv4Addr::from(
+(B[m[31m-                source.sin_addr.s_addr.to_ne_bytes()
+(B[m[31m-            );
+(B[m[32m+        let source_ip = Ipv4Addr::from(source.sin_addr.s_addr.to_ne_bytes());
+(B[m 
+         if source_ip != target {
+             continue;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:286:
+         let icmp_type = packet[0];
+         let icmp_code = packet[1];
+ 
+[31m-        if icmp_type != ICMP_ECHO_REPLY
+(B[m[31m-            || icmp_code != 0
+(B[m[31m-        {
+(B[m[32m+        if icmp_type != ICMP_ECHO_REPLY || icmp_code != 0 {
+(B[m             continue;
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:295:
+[31m-        let reply_sequence =
+(B[m[31m-            u16::from_be_bytes([
+(B[m[31m-                packet[6],
+(B[m[31m-                packet[7],
+(B[m[31m-            ]);
+(B[m[32m+        let reply_sequence = u16::from_be_bytes([packet[6], packet[7]]);
+(B[m 
+         if reply_sequence != sequence {
+             continue;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:311:
+     }
+ }
+ 
+[31m-pub fn set_socket_nonblocking(
+(B[m[31m-    fd: i32,
+(B[m[31m-) -> io::Result<()> {
+(B[m[31m-    let flags =
+(B[m[31m-        unsafe {
+(B[m[31m-            libc::fcntl(
+(B[m[31m-                fd,
+(B[m[31m-                libc::F_GETFL,
+(B[m[31m-            )
+(B[m[31m-        };
+(B[m[32m+pub fn set_socket_nonblocking(fd: i32) -> io::Result<()> {
+(B[m[32m+    let flags = unsafe { libc::fcntl(fd, libc::F_GETFL) };
+(B[m 
+     if flags < 0 {
+         return Err(io::Error::last_os_error());
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:327:
+     }
+ 
+[31m-    let result =
+(B[m[31m-        unsafe {
+(B[m[31m-            libc::fcntl(
+(B[m[31m-                fd,
+(B[m[31m-                libc::F_SETFL,
+(B[m[31m-                flags | libc::O_NONBLOCK,
+(B[m[31m-            )
+(B[m[31m-        };
+(B[m[32m+    let result = unsafe { libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK) };
+(B[m 
+     if result < 0 {
+         return Err(io::Error::last_os_error());
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:342:
+     Ok(())
+ }
+ 
+[31m-pub fn receive_sweep_reply(
+(B[m[31m-    fd: i32,
+(B[m[31m-) -> io::Result<Option<SweepEvent>> {
+(B[m[32m+pub fn receive_sweep_reply(fd: i32) -> io::Result<Option<SweepEvent>> {
+(B[m     let mut buffer = [0u8; 65_535];
+ 
+[31m-    let mut source: libc::sockaddr_in =
+(B[m[31m-        unsafe { mem::zeroed() };
+(B[m[32m+    let mut source: libc::sockaddr_in = unsafe { mem::zeroed() };
+(B[m 
+     let mut iov = libc::iovec {
+[31m-        iov_base:
+(B[m[31m-            buffer.as_mut_ptr() as *mut libc::c_void,
+(B[m[32m+        iov_base: buffer.as_mut_ptr() as *mut libc::c_void,
+(B[m 
+         iov_len: buffer.len(),
+     };
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:359:
+ 
+[31m-    let mut message: libc::msghdr =
+(B[m[31m-        unsafe { mem::zeroed() };
+(B[m[32m+    let mut message: libc::msghdr = unsafe { mem::zeroed() };
+(B[m 
+[31m-    message.msg_name =
+(B[m[31m-        &mut source as *mut libc::sockaddr_in
+(B[m[31m-            as *mut libc::c_void;
+(B[m[32m+    message.msg_name = &mut source as *mut libc::sockaddr_in as *mut libc::c_void;
+(B[m 
+[31m-    message.msg_namelen =
+(B[m[31m-        mem::size_of::<libc::sockaddr_in>()
+(B[m[31m-            as libc::socklen_t;
+(B[m[32m+    message.msg_namelen = mem::size_of::<libc::sockaddr_in>() as libc::socklen_t;
+(B[m 
+     message.msg_iov = &mut iov;
+     message.msg_iovlen = 1;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:373:
+ 
+[31m-    let received = unsafe {
+(B[m[31m-        libc::recvmsg(
+(B[m[31m-            fd,
+(B[m[31m-            &mut message,
+(B[m[31m-            libc::MSG_DONTWAIT,
+(B[m[31m-        )
+(B[m[31m-    };
+(B[m[32m+    let received = unsafe { libc::recvmsg(fd, &mut message, libc::MSG_DONTWAIT) };
+(B[m 
+     if received < 0 {
+         let error = io::Error::last_os_error();
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:385:
+         return match error.kind() {
+             io::ErrorKind::WouldBlock
+             | io::ErrorKind::HostUnreachable
+[31m-            | io::ErrorKind::NetworkUnreachable => {
+(B[m[31m-                Ok(None)
+(B[m[31m-            }
+(B[m[32m+            | io::ErrorKind::NetworkUnreachable => Ok(None),
+(B[m 
+             _ => Err(error),
+         };
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:399:
+         return Ok(None);
+     }
+ 
+[31m-    if buffer[0] != ICMP_ECHO_REPLY
+(B[m[31m-        || buffer[1] != 0
+(B[m[31m-    {
+(B[m[32m+    if buffer[0] != ICMP_ECHO_REPLY || buffer[1] != 0 {
+(B[m         return Ok(None);
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:408:
+[31m-    let sequence =
+(B[m[31m-        u16::from_be_bytes([
+(B[m[31m-            buffer[6],
+(B[m[31m-            buffer[7],
+(B[m[31m-        ]);
+(B[m[32m+    let sequence = u16::from_be_bytes([buffer[6], buffer[7]]);
+(B[m 
+[31m-    let source =
+(B[m[31m-        Ipv4Addr::from(
+(B[m[31m-            source.sin_addr.s_addr.to_ne_bytes()
+(B[m[31m-        );
+(B[m[32m+    let source = Ipv4Addr::from(source.sin_addr.s_addr.to_ne_bytes());
+(B[m 
+[31m-    Ok(Some(
+(B[m[31m-        SweepEvent::Reply {
+(B[m[31m-            source,
+(B[m[31m-            sequence,
+(B[m[31m-        }
+(B[m[31m-    ))
+(B[m[32m+    Ok(Some(SweepEvent::Reply { source, sequence }))
+(B[m }
+ 
+[31m-fn extract_ttl(
+(B[m[31m-    message: &libc::msghdr,
+(B[m[31m-) -> Option<u8> {
+(B[m[32m+fn extract_ttl(message: &libc::msghdr) -> Option<u8> {
+(B[m     unsafe {
+[31m-        let mut cmsg =
+(B[m[31m-            libc::CMSG_FIRSTHDR(
+(B[m[31m-                message as *const libc::msghdr
+(B[m[31m-            );
+(B[m[32m+        let mut cmsg = libc::CMSG_FIRSTHDR(message as *const libc::msghdr);
+(B[m 
+         while !cmsg.is_null() {
+[31m-            if (*cmsg).cmsg_level
+(B[m[31m-                == libc::IPPROTO_IP
+(B[m[31m-                && (*cmsg).cmsg_type
+(B[m[31m-                    == libc::IP_TTL
+(B[m[31m-            {
+(B[m[31m-                let ttl_ptr =
+(B[m[31m-                    libc::CMSG_DATA(cmsg)
+(B[m[31m-                        as *const libc::c_int;
+(B[m[32m+            if (*cmsg).cmsg_level == libc::IPPROTO_IP && (*cmsg).cmsg_type == libc::IP_TTL {
+(B[m[32m+                let ttl_ptr = libc::CMSG_DATA(cmsg) as *const libc::c_int;
+(B[m 
+[31m-                let ttl =
+(B[m[31m-                    std::ptr::read_unaligned(
+(B[m[31m-                        ttl_ptr
+(B[m[31m-                    );
+(B[m[32m+                let ttl = std::ptr::read_unaligned(ttl_ptr);
+(B[m 
+                 return u8::try_from(ttl).ok();
+             }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:453:
+ 
+[31m-            cmsg =
+(B[m[31m-                libc::CMSG_NXTHDR(
+(B[m[31m-                    message as *const libc::msghdr,
+(B[m[31m-                    cmsg,
+(B[m[31m-                );
+(B[m[32m+            cmsg = libc::CMSG_NXTHDR(message as *const libc::msghdr, cmsg);
+(B[m         }
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv4/socket.rs:462:
+     None
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/ipv6/mod.rs:1:
+[32m+
+(B[m[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:66:
+     (duration.as_secs_f64() * 1_000_000.0).round() / 1_000.0
+ }
+ 
+[31m-pub fn ping_result_to_json(
+(B[m[31m-    sequence: u16,
+(B[m[31m-    result: &PingResult,
+(B[m[31m-) -> JsonPingProbe {
+(B[m[32m+pub fn ping_result_to_json(sequence: u16, result: &PingResult) -> JsonPingProbe {
+(B[m     match result {
+         PingResult::Alive { rtt, ttl } => JsonPingProbe {
+             sequence,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:96:
+         },
+ 
+         PingResult::NetworkUnreachable { from } => {
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::NetworkUnreachable,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::NetworkUnreachable, *from)
+(B[m         }
+ 
+         PingResult::HostUnreachable { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:107:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::HostUnreachable,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::HostUnreachable, *from)
+(B[m         }
+ 
+         PingResult::ProtocolUnreachable { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:115:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::ProtocolUnreachable,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::ProtocolUnreachable, *from)
+(B[m         }
+ 
+         PingResult::PortUnreachable { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:123:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::PortUnreachable,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::PortUnreachable, *from)
+(B[m         }
+ 
+         PingResult::SourceRouteFailed { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:131:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::SourceRouteFailed,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::SourceRouteFailed, *from)
+(B[m         }
+ 
+         PingResult::AdministrativelyProhibited { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:139:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::AdministrativelyProhibited,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::AdministrativelyProhibited, *from)
+(B[m         }
+ 
+         PingResult::ParameterProblem { from } => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:147:
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::ParameterProblem,
+(B[m[31m-                *from,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::ParameterProblem, *from)
+(B[m         }
+ 
+         PingResult::TimeExceeded { from, rtt } => JsonPingProbe {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:175:
+             error: None,
+         },
+ 
+[31m-        PingResult::NetworkDown => {
+(B[m[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::NetworkDown,
+(B[m[31m-                None,
+(B[m[31m-            )
+(B[m[31m-        }
+(B[m[32m+        PingResult::NetworkDown => json_error_probe(sequence, JsonStatus::NetworkDown, None),
+(B[m 
+         PingResult::PermissionDenied => {
+[31m-            json_error_probe(
+(B[m[31m-                sequence,
+(B[m[31m-                JsonStatus::PermissionDenied,
+(B[m[31m-                None,
+(B[m[31m-            )
+(B[m[32m+            json_error_probe(sequence, JsonStatus::PermissionDenied, None)
+(B[m         }
+ 
+         PingResult::IcmpError {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:221:
+     }
+ }
+ 
+[31m-fn json_error_probe(
+(B[m[31m-    sequence: u16,
+(B[m[31m-    status: JsonStatus,
+(B[m[31m-    from: Option<Ipv4Addr>,
+(B[m[31m-) -> JsonPingProbe {
+(B[m[32m+fn json_error_probe(sequence: u16, status: JsonStatus, from: Option<Ipv4Addr>) -> JsonPingProbe {
+(B[m     JsonPingProbe {
+         sequence,
+         status,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/json.rs:238:
+         error: None,
+     }
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:13:
+ use console::style;
+ 
+ use std::io;
+[31m-use std::net::{
+(B[m[31m-    Ipv4Addr,
+(B[m[31m-    SocketAddr,
+(B[m[31m-    ToSocketAddrs,
+(B[m[31m-};
+(B[m[32m+use std::net::{Ipv4Addr, SocketAddr, ToSocketAddrs};
+(B[m use std::time::Duration;
+ 
+ use crate::cli::Cli;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:24:
+ 
+ use crate::constants::{
+[31m-    DEFAULT_INTERVAL_MILLISECONDS,
+(B[m[31m-    DEFAULT_SWEEP_INTERVAL_MILLISECONDS,
+(B[m[31m-    DEFAULT_SWEEP_TIMEOUT_MILLISECONDS,
+(B[m[31m-    DEFAULT_TIMEOUT_MILLISECONDS,
+(B[m[31m-    MAX_PAYLOAD_SIZE,
+(B[m[32m+    DEFAULT_INTERVAL_MILLISECONDS, DEFAULT_SWEEP_INTERVAL_MILLISECONDS,
+(B[m[32m+    DEFAULT_SWEEP_TIMEOUT_MILLISECONDS, DEFAULT_TIMEOUT_MILLISECONDS, MAX_PAYLOAD_SIZE,
+(B[m };
+ 
+ use crate::output::display_target;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:34:
+ 
+[31m-fn effective_timeout(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> Duration {
+(B[m[31m-    let milliseconds =
+(B[m[31m-        cli.timeout.unwrap_or(
+(B[m[31m-            if cli.sweep {
+(B[m[31m-                DEFAULT_SWEEP_TIMEOUT_MILLISECONDS
+(B[m[31m-            } else {
+(B[m[31m-                DEFAULT_TIMEOUT_MILLISECONDS
+(B[m[31m-            }
+(B[m[31m-        );
+(B[m[32m+fn effective_timeout(cli: &Cli) -> Duration {
+(B[m[32m+    let milliseconds = cli.timeout.unwrap_or(if cli.sweep {
+(B[m[32m+        DEFAULT_SWEEP_TIMEOUT_MILLISECONDS
+(B[m[32m+    } else {
+(B[m[32m+        DEFAULT_TIMEOUT_MILLISECONDS
+(B[m[32m+    });
+(B[m 
+[31m-    Duration::from_millis(
+(B[m[31m-        milliseconds
+(B[m[31m-    )
+(B[m[32m+    Duration::from_millis(milliseconds)
+(B[m }
+ 
+[31m-fn effective_interval(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> Duration {
+(B[m[31m-    let milliseconds =
+(B[m[31m-        cli.interval.unwrap_or(
+(B[m[31m-            if cli.sweep {
+(B[m[31m-                DEFAULT_SWEEP_INTERVAL_MILLISECONDS
+(B[m[31m-            } else {
+(B[m[31m-                DEFAULT_INTERVAL_MILLISECONDS
+(B[m[31m-            }
+(B[m[31m-        );
+(B[m[32m+fn effective_interval(cli: &Cli) -> Duration {
+(B[m[32m+    let milliseconds = cli.interval.unwrap_or(if cli.sweep {
+(B[m[32m+        DEFAULT_SWEEP_INTERVAL_MILLISECONDS
+(B[m[32m+    } else {
+(B[m[32m+        DEFAULT_INTERVAL_MILLISECONDS
+(B[m[32m+    });
+(B[m 
+[31m-    Duration::from_millis(
+(B[m[31m-        milliseconds
+(B[m[31m-    )
+(B[m[32m+    Duration::from_millis(milliseconds)
+(B[m }
+ 
+[31m-fn resolve_target(
+(B[m[31m-    target: &str,
+(B[m[31m-) -> io::Result<Ipv4Addr> {
+(B[m[31m-    if let Ok(ip) =
+(B[m[31m-        target.parse::<Ipv4Addr>()
+(B[m[31m-    {
+(B[m[32m+fn resolve_target(target: &str) -> io::Result<Ipv4Addr> {
+(B[m[32m+    if let Ok(ip) = target.parse::<Ipv4Addr>() {
+(B[m         return Ok(ip);
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:78:
+[31m-    let addresses =
+(B[m[31m-        (target, 0)
+(B[m[31m-            .to_socket_addrs()?;
+(B[m[32m+    let addresses = (target, 0).to_socket_addrs()?;
+(B[m 
+     for address in addresses {
+[31m-        if let SocketAddr::V4(
+(B[m[31m-            address_v4
+(B[m[31m-        ) = address
+(B[m[31m-        {
+(B[m[31m-            return Ok(
+(B[m[31m-                *address_v4.ip()
+(B[m[31m-            );
+(B[m[32m+        if let SocketAddr::V4(address_v4) = address {
+(B[m[32m+            return Ok(*address_v4.ip());
+(B[m         }
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:93:
+[31m-    Err(
+(B[m[31m-        io::Error::new(
+(B[m[31m-            io::ErrorKind::AddrNotAvailable,
+(B[m[31m-            format!(
+(B[m[31m-                "No IPv4 address found for {target}"
+(B[m[31m-            ),
+(B[m[31m-        )
+(B[m[31m-    )
+(B[m[32m+    Err(io::Error::new(
+(B[m[32m+        io::ErrorKind::AddrNotAvailable,
+(B[m[32m+        format!("No IPv4 address found for {target}"),
+(B[m[32m+    ))
+(B[m }
+ 
+ fn main() -> io::Result<()> {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:104:
+[31m-    let cli =
+(B[m[31m-        Cli::parse();
+(B[m[32m+    let cli = Cli::parse();
+(B[m 
+     /*
+      * General CLI validation
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:109:
+      */
+ 
+     if cli.count == Some(0) {
+[31m-        eprintln!(
+(B[m[31m-            "{}",
+(B[m[31m-            style(
+(B[m[31m-                "COUNT must be greater than zero"
+(B[m[31m-            )
+(B[m[31m-            .red()
+(B[m[31m-            .bold()
+(B[m[31m-        );
+(B[m[32m+        eprintln!("{}", style("COUNT must be greater than zero").red().bold());
+(B[m 
+         std::process::exit(2);
+     }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:124:
+     if cli.timeout == Some(0) {
+         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                "TIMEOUT must be greater than zero"
+(B[m[31m-            )
+(B[m[31m-            .red()
+(B[m[31m-            .bold()
+(B[m[32m+            style("TIMEOUT must be greater than zero").red().bold()
+(B[m         );
+ 
+         std::process::exit(2);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:137:
+     if cli.interval == Some(0) {
+         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                "INTERVAL must be greater than zero"
+(B[m[31m-            )
+(B[m[31m-            .red()
+(B[m[31m-            .bold()
+(B[m[32m+            style("INTERVAL must be greater than zero").red().bold()
+(B[m         );
+ 
+         std::process::exit(2);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:150:
+     if cli.concurrency == 0 {
+         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                "CONCURRENCY must be greater than zero"
+(B[m[31m-            )
+(B[m[31m-            .red()
+(B[m[31m-            .bold()
+(B[m[32m+            style("CONCURRENCY must be greater than zero").red().bold()
+(B[m         );
+ 
+         std::process::exit(2);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:161:
+     }
+ 
+[31m-    if cli.size
+(B[m[31m-        > MAX_PAYLOAD_SIZE
+(B[m[31m-    {
+(B[m[32m+    if cli.size > MAX_PAYLOAD_SIZE {
+(B[m         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                format!(
+(B[m[31m-                    "SIZE must be between 0 and {MAX_PAYLOAD_SIZE} bytes"
+(B[m[31m-                )
+(B[m[31m-            )
+(B[m[32m+            style(format!(
+(B[m[32m+                "SIZE must be between 0 and {MAX_PAYLOAD_SIZE} bytes"
+(B[m[32m+            ))
+(B[m             .red()
+             .bold()
+         );
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:181:
+      * Establish mode timing.
+      */
+ 
+[31m-    let timeout =
+(B[m[31m-        effective_timeout(
+(B[m[31m-            &cli
+(B[m[31m-        );
+(B[m[32m+    let timeout = effective_timeout(&cli);
+(B[m 
+[31m-    let interval =
+(B[m[31m-        effective_interval(
+(B[m[31m-            &cli
+(B[m[31m-        );
+(B[m[32m+    let interval = effective_interval(&cli);
+(B[m 
+     /*
+      * Modes that do not require
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:197:
+      */
+ 
+     if cli.broadcast {
+[31m-        return modes::broadcast::run(
+(B[m[31m-            &cli
+(B[m[31m-        );
+(B[m[32m+        return modes::broadcast::run(&cli);
+(B[m     }
+ 
+     if cli.sweep {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:206:
+[31m-        return modes::sweep::run(
+(B[m[31m-            &cli,
+(B[m[31m-            timeout,
+(B[m[31m-            interval,
+(B[m[31m-        );
+(B[m[32m+        return modes::sweep::run(&cli, timeout, interval);
+(B[m     }
+ 
+     /*
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:215:
+      * a destination.
+      */
+ 
+[31m-    let target_name =
+(B[m[31m-        match &cli.target {
+(B[m[31m-            Some(target) => target,
+(B[m[32m+    let target_name = match &cli.target {
+(B[m[32m+        Some(target) => target,
+(B[m 
+[31m-            None => {
+(B[m[31m-                eprintln!(
+(B[m[31m-                    "{}",
+(B[m[31m-                    style(
+(B[m[31m-                        "TARGET is required for ping and route modes"
+(B[m[31m-                    )
+(B[m[32m+        None => {
+(B[m[32m+            eprintln!(
+(B[m[32m+                "{}",
+(B[m[32m+                style("TARGET is required for ping and route modes")
+(B[m                     .red()
+                     .bold()
+[31m-                );
+(B[m[32m+            );
+(B[m 
+[31m-                std::process::exit(2);
+(B[m[31m-            }
+(B[m[31m-        };
+(B[m[32m+            std::process::exit(2);
+(B[m[32m+        }
+(B[m[32m+    };
+(B[m 
+     /*
+      * Resolve target to IPv4.
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:238:
+      */
+ 
+[31m-    let target =
+(B[m[31m-        match resolve_target(
+(B[m[31m-            target_name
+(B[m[31m-        ) {
+(B[m[31m-            Ok(ip) => ip,
+(B[m[32m+    let target = match resolve_target(target_name) {
+(B[m[32m+        Ok(ip) => ip,
+(B[m 
+[31m-            Err(error) => {
+(B[m[31m-                eprintln!(
+(B[m[31m-                    "{} {}: {}",
+(B[m[31m-                    style(
+(B[m[31m-                        "DNS Failure"
+(B[m[31m-                    )
+(B[m[31m-                    .red()
+(B[m[31m-                    .bold(),
+(B[m[31m-                    target_name,
+(B[m[31m-                    error
+(B[m[31m-                );
+(B[m[32m+        Err(error) => {
+(B[m[32m+            eprintln!(
+(B[m[32m+                "{} {}: {}",
+(B[m[32m+                style("DNS Failure").red().bold(),
+(B[m[32m+                target_name,
+(B[m[32m+                error
+(B[m[32m+            );
+(B[m 
+[31m-                std::process::exit(2);
+(B[m[31m-            }
+(B[m[31m-        };
+(B[m[32m+            std::process::exit(2);
+(B[m[32m+        }
+(B[m[32m+    };
+(B[m 
+[31m-    let target_display =
+(B[m[31m-        display_target(
+(B[m[31m-            target_name,
+(B[m[31m-            target,
+(B[m[31m-        );
+(B[m[32m+    let target_display = display_target(target_name, target);
+(B[m 
+     /*
+      * Route mode.
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:270:
+      */
+ 
+     if cli.route {
+[31m-        return modes::route::run(
+(B[m[31m-            &cli,
+(B[m[31m-            target,
+(B[m[31m-            &target_display,
+(B[m[31m-            timeout,
+(B[m[31m-        );
+(B[m[32m+        return modes::route::run(&cli, target, &target_display, timeout);
+(B[m     }
+ 
+     /*
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/main.rs:291:
+         interval,
+     )
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:4:
+ use crate::cli::Cli;
+ use crate::ipv4::interface::get_ipv4_interfaces;
+ 
+[31m-pub fn run(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> io::Result<()> {
+(B[m[31m-    let requested_interface =
+(B[m[31m-        cli.target.as_deref();
+(B[m[32m+pub fn run(cli: &Cli) -> io::Result<()> {
+(B[m[32m+    let requested_interface = cli.target.as_deref();
+(B[m 
+[31m-    let interfaces =
+(B[m[31m-        get_ipv4_interfaces(
+(B[m[31m-            requested_interface
+(B[m[31m-        )?;
+(B[m[32m+    let interfaces = get_ipv4_interfaces(requested_interface)?;
+(B[m 
+     if interfaces.is_empty() {
+         match requested_interface {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:20:
+             Some(name) => {
+                 eprintln!(
+                     "{}",
+[31m-                    style(
+(B[m[31m-                        format!(
+(B[m[31m-                            "ring: no usable IPv4 broadcast interface named {name}"
+(B[m[31m-                        )
+(B[m[31m-                    )
+(B[m[32m+                    style(format!(
+(B[m[32m+                        "ring: no usable IPv4 broadcast interface named {name}"
+(B[m[32m+                    ))
+(B[m                     .red()
+                     .bold()
+                 );
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:33:
+             None => {
+                 eprintln!(
+                     "{}",
+[31m-                    style(
+(B[m[31m-                        "ring: no usable IPv4 broadcast interfaces found"
+(B[m[31m-                    )
+(B[m[31m-                    .red()
+(B[m[31m-                    .bold()
+(B[m[32m+                    style("ring: no usable IPv4 broadcast interfaces found")
+(B[m[32m+                        .red()
+(B[m[32m+                        .bold()
+(B[m                 );
+             }
+         }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:45:
+         std::process::exit(2);
+     }
+ 
+[31m-    println!(
+(B[m[31m-        "{}",
+(B[m[31m-        style(
+(B[m[31m-            "Broadcast interfaces:"
+(B[m[31m-        )
+(B[m[31m-        .magenta()
+(B[m[31m-        .bold()
+(B[m[31m-    );
+(B[m[32m+    println!("{}", style("Broadcast interfaces:").magenta().bold());
+(B[m 
+     for interface in &interfaces {
+         println!(
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:59:
+             "{} {} {}",
+[31m-            style(
+(B[m[31m-                &interface.name
+(B[m[31m-            )
+(B[m[31m-            .cyan()
+(B[m[31m-            .bold(),
+(B[m[31m-
+(B[m[31m-            style(
+(B[m[31m-                format!(
+(B[m[31m-                    "address={}",
+(B[m[31m-                    interface.address
+(B[m[31m-                )
+(B[m[31m-            )
+(B[m[31m-            .green(),
+(B[m[31m-
+(B[m[31m-            style(
+(B[m[31m-                format!(
+(B[m[31m-                    "broadcast={}",
+(B[m[31m-                    interface.broadcast
+(B[m[31m-                )
+(B[m[31m-            )
+(B[m[31m-            .yellow()
+(B[m[31m-            .bold()
+(B[m[32m+            style(&interface.name).cyan().bold(),
+(B[m[32m+            style(format!("address={}", interface.address)).green(),
+(B[m[32m+            style(format!("broadcast={}", interface.broadcast))
+(B[m[32m+                .yellow()
+(B[m[32m+                .bold()
+(B[m         );
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/broadcast.rs:85:
+     Ok(())
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/mod.rs:2:
+ pub mod ping;
+ pub mod route;
+ pub mod sweep;
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:2:
+ use std::net::Ipv4Addr;
+ use std::sync::{
+     Arc,
+[31m-    atomic::{
+(B[m[31m-        AtomicBool,
+(B[m[31m-        Ordering,
+(B[m[31m-    },
+(B[m[32m+    atomic::{AtomicBool, Ordering},
+(B[m };
+ use std::thread;
+[31m-use std::time::{
+(B[m[31m-    Duration,
+(B[m[31m-    Instant,
+(B[m[31m-};
+(B[m[32m+use std::time::{Duration, Instant};
+(B[m 
+ use crate::cli::Cli;
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:18:
+ use crate::ipv4::errors::classify_network_error;
+ use crate::ipv4::packet::build_echo_request;
+[31m-use crate::ipv4::socket::{
+(B[m[31m-    create_ping_socket,
+(B[m[31m-    send_echo_request,
+(B[m[31m-    wait_for_reply,
+(B[m[31m-};
+(B[m[32m+use crate::ipv4::socket::{create_ping_socket, send_echo_request, wait_for_reply};
+(B[m 
+[31m-use crate::json::{
+(B[m[31m-    JsonPingOutput,
+(B[m[31m-    JsonPingProbe,
+(B[m[31m-    ping_result_to_json,
+(B[m[31m-};
+(B[m[32m+use crate::json::{JsonPingOutput, JsonPingProbe, ping_result_to_json};
+(B[m 
+ use crate::output::print_result;
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:34:
+[31m-use crate::types::{
+(B[m[31m-    PingResult,
+(B[m[31m-    PingStats,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingResult, PingStats};
+(B[m 
+ pub fn run(
+     cli: &Cli,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:44:
+     timeout: Duration,
+     interval: Duration,
+ ) -> io::Result<()> {
+[31m-    let fd =
+(B[m[31m-        match create_ping_socket(timeout) {
+(B[m[31m-            Ok(fd) => fd,
+(B[m[32m+    let fd = match create_ping_socket(timeout) {
+(B[m[32m+        Ok(fd) => fd,
+(B[m 
+[31m-            Err(error) => {
+(B[m[31m-                eprintln!(
+(B[m[31m-                    "ring: unable to create ICMP ping socket: {error}"
+(B[m[31m-                );
+(B[m[32m+        Err(error) => {
+(B[m[32m+            eprintln!("ring: unable to create ICMP ping socket: {error}");
+(B[m 
+[31m-                eprintln!(
+(B[m[31m-                    "Check: sysctl net.ipv4.ping_group_range"
+(B[m[31m-                );
+(B[m[32m+            eprintln!("Check: sysctl net.ipv4.ping_group_range");
+(B[m 
+[31m-                std::process::exit(3);
+(B[m[31m-            }
+(B[m[31m-        };
+(B[m[32m+            std::process::exit(3);
+(B[m[32m+        }
+(B[m[32m+    };
+(B[m 
+[31m-    let running =
+(B[m[31m-        Arc::new(
+(B[m[31m-            AtomicBool::new(true)
+(B[m[31m-        );
+(B[m[32m+    let running = Arc::new(AtomicBool::new(true));
+(B[m 
+[31m-    let handler_running =
+(B[m[31m-        Arc::clone(&running);
+(B[m[32m+    let handler_running = Arc::clone(&running);
+(B[m 
+     ctrlc::set_handler(move || {
+[31m-        handler_running.store(
+(B[m[31m-            false,
+(B[m[31m-            Ordering::SeqCst,
+(B[m[31m-        );
+(B[m[32m+        handler_running.store(false, Ordering::SeqCst);
+(B[m     })
+[31m-    .expect(
+(B[m[31m-        "Unable to install Ctrl+C handler"
+(B[m[31m-    );
+(B[m[32m+    .expect("Unable to install Ctrl+C handler");
+(B[m 
+[31m-    let requested_count =
+(B[m[31m-        cli.count.unwrap_or(1);
+(B[m[32m+    let requested_count = cli.count.unwrap_or(1);
+(B[m 
+[31m-    let show_statistics =
+(B[m[31m-        cli.continuous
+(B[m[31m-            || cli.count.is_some();
+(B[m[32m+    let show_statistics = cli.continuous || cli.count.is_some();
+(B[m 
+     let mut attempts: u32 = 0;
+     let mut sequence: u16 = 1;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:91:
+ 
+[31m-    let mut stats =
+(B[m[31m-        PingStats::new();
+(B[m[32m+    let mut stats = PingStats::new();
+(B[m 
+[31m-    let mut json_probes:
+(B[m[31m-        Vec<JsonPingProbe> =
+(B[m[31m-        Vec::new();
+(B[m[32m+    let mut json_probes: Vec<JsonPingProbe> = Vec::new();
+(B[m 
+[31m-    while running.load(
+(B[m[31m-        Ordering::SeqCst
+(B[m[31m-    ) {
+(B[m[31m-        if !cli.continuous
+(B[m[31m-            && attempts
+(B[m[31m-                >= requested_count
+(B[m[31m-        {
+(B[m[32m+    while running.load(Ordering::SeqCst) {
+(B[m[32m+        if !cli.continuous && attempts >= requested_count {
+(B[m             break;
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:109:
+         attempts += 1;
+ 
+[31m-        let packet =
+(B[m[31m-            build_echo_request(
+(B[m[31m-                sequence,
+(B[m[31m-                cli.size,
+(B[m[31m-            );
+(B[m[32m+        let packet = build_echo_request(sequence, cli.size);
+(B[m 
+[31m-        let start =
+(B[m[31m-            Instant::now();
+(B[m[32m+        let start = Instant::now();
+(B[m 
+[31m-        let result =
+(B[m[31m-            match send_echo_request(
+(B[m[31m-                fd,
+(B[m[31m-                target,
+(B[m[31m-                &packet,
+(B[m[31m-            ) {
+(B[m[31m-                Ok(()) => {
+(B[m[31m-                    stats.transmitted += 1;
+(B[m[32m+        let result = match send_echo_request(fd, target, &packet) {
+(B[m[32m+            Ok(()) => {
+(B[m[32m+                stats.transmitted += 1;
+(B[m 
+[31m-                    wait_for_reply(
+(B[m[31m-                        fd,
+(B[m[31m-                        target,
+(B[m[31m-                        sequence,
+(B[m[31m-                        start,
+(B[m[31m-                    )
+(B[m[31m-                }
+(B[m[32m+                wait_for_reply(fd, target, sequence, start)
+(B[m[32m+            }
+(B[m 
+[31m-                Err(error) => {
+(B[m[31m-                    classify_network_error(
+(B[m[31m-                        error
+(B[m[31m-                    )
+(B[m[31m-                }
+(B[m[31m-            };
+(B[m[32m+            Err(error) => classify_network_error(error),
+(B[m[32m+        };
+(B[m 
+         if cli.json {
+[31m-            json_probes.push(
+(B[m[31m-                ping_result_to_json(
+(B[m[31m-                    sequence,
+(B[m[31m-                    &result,
+(B[m[31m-                )
+(B[m[31m-            );
+(B[m[32m+            json_probes.push(ping_result_to_json(sequence, &result));
+(B[m         } else {
+[31m-            print_result(
+(B[m[31m-                target_display,
+(B[m[31m-                sequence,
+(B[m[31m-                &result,
+(B[m[31m-                timeout,
+(B[m[31m-            );
+(B[m[32m+            print_result(target_display, sequence, &result, timeout);
+(B[m         }
+ 
+         match &result {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:161:
+[31m-            PingResult::Alive {
+(B[m[31m-                rtt,
+(B[m[31m-                ttl,
+(B[m[31m-            } => {
+(B[m[31m-                stats.record_reply(
+(B[m[31m-                    *rtt,
+(B[m[31m-                    *ttl,
+(B[m[31m-                );
+(B[m[32m+            PingResult::Alive { rtt, ttl } => {
+(B[m[32m+                stats.record_reply(*rtt, *ttl);
+(B[m             }
+ 
+             PingResult::NoResponse => {}
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:175:
+             }
+         }
+ 
+[31m-        sequence =
+(B[m[31m-            sequence.wrapping_add(1);
+(B[m[32m+        sequence = sequence.wrapping_add(1);
+(B[m 
+[31m-        if !cli.continuous
+(B[m[31m-            && attempts
+(B[m[31m-                >= requested_count
+(B[m[31m-        {
+(B[m[32m+        if !cli.continuous && attempts >= requested_count {
+(B[m             break;
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:188:
+[31m-        if !running.load(
+(B[m[31m-            Ordering::SeqCst
+(B[m[31m-        ) {
+(B[m[32m+        if !running.load(Ordering::SeqCst) {
+(B[m             break;
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:199:
+     }
+ 
+     if cli.json {
+[31m-        let output =
+(B[m[31m-            JsonPingOutput {
+(B[m[31m-                schema_version: 1,
+(B[m[31m-                mode: "ping",
+(B[m[31m-                target:
+(B[m[31m-                    target_name.to_string(),
+(B[m[31m-                address: target,
+(B[m[31m-                transmitted:
+(B[m[31m-                    stats.transmitted,
+(B[m[31m-                received:
+(B[m[31m-                    stats.received,
+(B[m[31m-                probes:
+(B[m[31m-                    json_probes,
+(B[m[31m-            };
+(B[m[32m+        let output = JsonPingOutput {
+(B[m[32m+            schema_version: 1,
+(B[m[32m+            mode: "ping",
+(B[m[32m+            target: target_name.to_string(),
+(B[m[32m+            address: target,
+(B[m[32m+            transmitted: stats.transmitted,
+(B[m[32m+            received: stats.received,
+(B[m[32m+            probes: json_probes,
+(B[m[32m+        };
+(B[m 
+         println!(
+             "{}",
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:219:
+[31m-            serde_json::to_string_pretty(
+(B[m[31m-                &output
+(B[m[31m-            )
+(B[m[31m-            .expect(
+(B[m[31m-                "Unable to serialize JSON output"
+(B[m[31m-            )
+(B[m[32m+            serde_json::to_string_pretty(&output).expect("Unable to serialize JSON output")
+(B[m         );
+     } else if show_statistics {
+[31m-        stats.print(
+(B[m[31m-            target_display
+(B[m[31m-        );
+(B[m[32m+        stats.print(target_display);
+(B[m     }
+ 
+     if stats.received == 0 {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/ping.rs:235:
+ 
+     Ok(())
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:11:
+ 
+ use crate::ipv4::packet::build_echo_request;
+ 
+[31m-use crate::ipv4::socket::{
+(B[m[31m-    create_ping_socket,
+(B[m[31m-    send_echo_request,
+(B[m[31m-    set_socket_ttl,
+(B[m[31m-    wait_for_reply,
+(B[m[31m-};
+(B[m[32m+use crate::ipv4::socket::{create_ping_socket, send_echo_request, set_socket_ttl, wait_for_reply};
+(B[m 
+[31m-use crate::output::{
+(B[m[31m-    print_route_compact,
+(B[m[31m-    print_route_statistics,
+(B[m[31m-};
+(B[m[32m+use crate::output::{print_route_compact, print_route_statistics};
+(B[m 
+[31m-use crate::types::{
+(B[m[31m-    PingResult,
+(B[m[31m-    RouteHop,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingResult, RouteHop};
+(B[m 
+[31m-fn route_probe_count(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> u32 {
+(B[m[32m+fn route_probe_count(cli: &Cli) -> u32 {
+(B[m     match cli.count {
+         Some(count) => count,
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:46:
+     target_display: &str,
+     timeout: std::time::Duration,
+ ) -> io::Result<()> {
+[31m-    let fd =
+(B[m[31m-        create_ping_socket(
+(B[m[31m-            timeout
+(B[m[31m-        )?;
+(B[m[32m+    let fd = create_ping_socket(timeout)?;
+(B[m 
+[31m-    let result =
+(B[m[31m-        run_route(
+(B[m[31m-            fd,
+(B[m[31m-            target,
+(B[m[31m-            target_display,
+(B[m[31m-            cli,
+(B[m[31m-        );
+(B[m[32m+    let result = run_route(fd, target, target_display, cli);
+(B[m 
+     unsafe {
+         libc::close(fd);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:66:
+     result
+ }
+ 
+[31m-fn run_route(
+(B[m[31m-    fd: i32,
+(B[m[31m-    target: Ipv4Addr,
+(B[m[31m-    target_display: &str,
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> io::Result<()> {
+(B[m[31m-    let probes_per_hop =
+(B[m[31m-        route_probe_count(cli);
+(B[m[32m+fn run_route(fd: i32, target: Ipv4Addr, target_display: &str, cli: &Cli) -> io::Result<()> {
+(B[m[32m+    let probes_per_hop = route_probe_count(cli);
+(B[m 
+     println!(
+         "{}",
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:80:
+[31m-        style(
+(B[m[31m-            format!(
+(B[m[31m-                "Tracing route to {target_display}, maximum {} hops",
+(B[m[31m-                cli.max_hops
+(B[m[31m-            )
+(B[m[31m-        )
+(B[m[32m+        style(format!(
+(B[m[32m+            "Tracing route to {target_display}, maximum {} hops",
+(B[m[32m+            cli.max_hops
+(B[m[32m+        ))
+(B[m         .cyan()
+         .bold()
+     );
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:90:
+     if cli.verbose {
+         println!(
+             "{}",
+[31m-            style(
+(B[m[31m-                format!(
+(B[m[31m-                    "{probes_per_hop} probes per hop"
+(B[m[31m-                )
+(B[m[31m-            )
+(B[m[31m-            .dim()
+(B[m[32m+            style(format!("{probes_per_hop} probes per hop")).dim()
+(B[m         );
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:104:
+     if cli.verbose {
+         println!(
+             "{:<4} {:<32} {:>9} {:>9} {:>9} {:>9} {:>9} {:>9}",
+[31m-            "Hop",
+(B[m[31m-            "Address",
+(B[m[31m-            "RespLoss",
+(B[m[31m-            "Min",
+(B[m[31m-            "Avg",
+(B[m[31m-            "Max",
+(B[m[31m-            "mdev",
+(B[m[31m-            "ΔAvg"
+(B[m[32m+            "Hop", "Address", "RespLoss", "Min", "Avg", "Max", "mdev", "ΔAvg"
+(B[m         );
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:118:
+     let mut sequence: u16 = 1;
+ 
+[31m-    let mut previous_average:
+(B[m[31m-        Option<f64> = None;
+(B[m[32m+    let mut previous_average: Option<f64> = None;
+(B[m 
+[31m-    let mut total_probes:
+(B[m[31m-        u32 = 0;
+(B[m[32m+    let mut total_probes: u32 = 0;
+(B[m 
+[31m-    let mut total_responses:
+(B[m[31m-        u32 = 0;
+(B[m[32m+    let mut total_responses: u32 = 0;
+(B[m 
+[31m-    for hop_number
+(B[m[31m-        in 1..=cli.max_hops
+(B[m[31m-    {
+(B[m[31m-        set_socket_ttl(
+(B[m[31m-            fd,
+(B[m[31m-            hop_number,
+(B[m[31m-        )?;
+(B[m[32m+    for hop_number in 1..=cli.max_hops {
+(B[m[32m+        set_socket_ttl(fd, hop_number)?;
+(B[m 
+[31m-        let mut route_hop =
+(B[m[31m-            RouteHop {
+(B[m[31m-                hop:
+(B[m[31m-                    hop_number,
+(B[m[32m+        let mut route_hop = RouteHop {
+(B[m[32m+            hop: hop_number,
+(B[m 
+[31m-                address:
+(B[m[31m-                    None,
+(B[m[32m+            address: None,
+(B[m 
+[31m-                hostname:
+(B[m[31m-                    None,
+(B[m[32m+            hostname: None,
+(B[m 
+[31m-                rtts:
+(B[m[31m-                    Vec::new(),
+(B[m[32m+            rtts: Vec::new(),
+(B[m 
+[31m-                probes_sent:
+(B[m[31m-                    0,
+(B[m[32m+            probes_sent: 0,
+(B[m 
+[31m-                reached_destination:
+(B[m[31m-                    false,
+(B[m[32m+            reached_destination: false,
+(B[m 
+[31m-                multiple_responders:
+(B[m[31m-                    false,
+(B[m[31m-            };
+(B[m[32m+            multiple_responders: false,
+(B[m[32m+        };
+(B[m 
+         for _ in 0..probes_per_hop {
+[31m-            let packet =
+(B[m[31m-                build_echo_request(
+(B[m[31m-                    sequence,
+(B[m[31m-                    cli.size,
+(B[m[31m-                );
+(B[m[32m+            let packet = build_echo_request(sequence, cli.size);
+(B[m 
+[31m-            let start =
+(B[m[31m-                Instant::now();
+(B[m[32m+            let start = Instant::now();
+(B[m 
+             route_hop.probes_sent += 1;
+             total_probes += 1;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:173:
+ 
+[31m-            let result =
+(B[m[31m-                match send_echo_request(
+(B[m[31m-                    fd,
+(B[m[31m-                    target,
+(B[m[31m-                    &packet,
+(B[m[31m-                ) {
+(B[m[31m-                    Ok(()) => {
+(B[m[31m-                        wait_for_reply(
+(B[m[31m-                            fd,
+(B[m[31m-                            target,
+(B[m[31m-                            sequence,
+(B[m[31m-                            start,
+(B[m[31m-                        )
+(B[m[31m-                    }
+(B[m[32m+            let result = match send_echo_request(fd, target, &packet) {
+(B[m[32m+                Ok(()) => wait_for_reply(fd, target, sequence, start),
+(B[m 
+[31m-                    Err(error) => {
+(B[m[31m-                        classify_network_error(
+(B[m[31m-                            error
+(B[m[31m-                        )
+(B[m[31m-                    }
+(B[m[31m-                };
+(B[m[32m+                Err(error) => classify_network_error(error),
+(B[m[32m+            };
+(B[m 
+             match result {
+[31m-                PingResult::TimeExceeded {
+(B[m[31m-                    from,
+(B[m[31m-                    rtt,
+(B[m[31m-                } => {
+(B[m[31m-                    if let Some(
+(B[m[31m-                        address
+(B[m[31m-                    ) = from
+(B[m[31m-                    {
+(B[m[31m-                        match route_hop
+(B[m[31m-                            .address
+(B[m[31m-                        {
+(B[m[31m-                            Some(existing)
+(B[m[31m-                                if existing
+(B[m[31m-                                    != address =>
+(B[m[31m-                            {
+(B[m[31m-                                route_hop
+(B[m[31m-                                    .multiple_responders =
+(B[m[31m-                                    true;
+(B[m[32m+                PingResult::TimeExceeded { from, rtt } => {
+(B[m[32m+                    if let Some(address) = from {
+(B[m[32m+                        match route_hop.address {
+(B[m[32m+                            Some(existing) if existing != address => {
+(B[m[32m+                                route_hop.multiple_responders = true;
+(B[m                             }
+ 
+                             None => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:218:
+[31m-                                route_hop
+(B[m[31m-                                    .address =
+(B[m[31m-                                    Some(address);
+(B[m[32m+                                route_hop.address = Some(address);
+(B[m                             }
+ 
+                             _ => {}
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:225:
+                     }
+ 
+                     if let Some(rtt) = rtt {
+[31m-                        route_hop
+(B[m[31m-                            .rtts
+(B[m[31m-                            .push(rtt);
+(B[m[32m+                        route_hop.rtts.push(rtt);
+(B[m 
+                         total_responses += 1;
+                     }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:234:
+                 }
+ 
+[31m-                PingResult::Alive {
+(B[m[31m-                    rtt,
+(B[m[31m-                    ..
+(B[m[31m-                } => {
+(B[m[31m-                    if let Some(existing) =
+(B[m[31m-                        route_hop.address
+(B[m[31m-                    {
+(B[m[32m+                PingResult::Alive { rtt, .. } => {
+(B[m[32m+                    if let Some(existing) = route_hop.address {
+(B[m                         if existing != target {
+[31m-                            route_hop
+(B[m[31m-                                .multiple_responders =
+(B[m[31m-                                true;
+(B[m[32m+                            route_hop.multiple_responders = true;
+(B[m                         }
+                     } else {
+[31m-                        route_hop.address =
+(B[m[31m-                            Some(target);
+(B[m[32m+                        route_hop.address = Some(target);
+(B[m                     }
+ 
+[31m-                    route_hop
+(B[m[31m-                        .rtts
+(B[m[31m-                        .push(rtt);
+(B[m[32m+                    route_hop.rtts.push(rtt);
+(B[m 
+[31m-                    route_hop
+(B[m[31m-                        .reached_destination =
+(B[m[31m-                        true;
+(B[m[32m+                    route_hop.reached_destination = true;
+(B[m 
+                     total_responses += 1;
+                 }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:266:
+                 _ => {}
+             }
+ 
+[31m-            sequence =
+(B[m[31m-                sequence.wrapping_add(1);
+(B[m[32m+            sequence = sequence.wrapping_add(1);
+(B[m         }
+ 
+         if cli.resolve {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:274:
+[31m-            route_hop.hostname =
+(B[m[31m-                route_hop
+(B[m[31m-                    .address
+(B[m[31m-                    .and_then(
+(B[m[31m-                        reverse_dns
+(B[m[31m-                    );
+(B[m[32m+            route_hop.hostname = route_hop.address.and_then(reverse_dns);
+(B[m         }
+ 
+         if cli.verbose {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:283:
+[31m-            print_route_statistics(
+(B[m[31m-                &route_hop,
+(B[m[31m-                &mut previous_average,
+(B[m[31m-            );
+(B[m[32m+            print_route_statistics(&route_hop, &mut previous_average);
+(B[m         } else {
+[31m-            print_route_compact(
+(B[m[31m-                &route_hop
+(B[m[31m-            );
+(B[m[32m+            print_route_compact(&route_hop);
+(B[m         }
+ 
+[31m-        if route_hop
+(B[m[31m-            .reached_destination
+(B[m[31m-        {
+(B[m[32m+        if route_hop.reached_destination {
+(B[m             println!();
+ 
+             println!(
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:299:
+                 "{}",
+[31m-                style(
+(B[m[31m-                    format!(
+(B[m[31m-                        "Route = {} hops",
+(B[m[31m-                        hop_number
+(B[m[31m-                    )
+(B[m[31m-                )
+(B[m[31m-                .green()
+(B[m[31m-                .bold()
+(B[m[32m+                style(format!("Route = {} hops", hop_number)).green().bold()
+(B[m             );
+ 
+             if cli.verbose {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:311:
+                 println!(
+                     "{} probes transmitted, {} responses",
+[31m-                    total_probes,
+(B[m[31m-                    total_responses
+(B[m[32m+                    total_probes, total_responses
+(B[m                 );
+             }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:323:
+ 
+     println!(
+         "{}",
+[31m-        style(
+(B[m[31m-            format!(
+(B[m[31m-                "Destination not reached within {} hops",
+(B[m[31m-                cli.max_hops
+(B[m[31m-            )
+(B[m[31m-        )
+(B[m[32m+        style(format!(
+(B[m[32m+            "Destination not reached within {} hops",
+(B[m[32m+            cli.max_hops
+(B[m[32m+        ))
+(B[m         .yellow()
+         .bold()
+     );
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:336:
+     if cli.verbose {
+         println!(
+             "{} probes transmitted, {} responses",
+[31m-            total_probes,
+(B[m[31m-            total_responses
+(B[m[32m+            total_probes, total_responses
+(B[m         );
+     }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/route.rs:344:
+     Ok(())
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:1:
+ use console::style;
+[31m-use std::io::{
+(B[m[31m-    self,
+(B[m[31m-    Write,
+(B[m[31m-};
+(B[m[32m+use std::io::{self, Write};
+(B[m use std::net::Ipv4Addr;
+ use std::thread;
+[31m-use std::time::{
+(B[m[31m-    Duration,
+(B[m[31m-    Instant,
+(B[m[31m-};
+(B[m[32m+use std::time::{Duration, Instant};
+(B[m 
+ use crate::cli::Cli;
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:15:
+ use crate::ipv4::errors::classify_network_error;
+ 
+ use crate::ipv4::interface::{
+[31m-    get_ipv4_interfaces,
+(B[m[31m-    range_from_cidr,
+(B[m[31m-    range_from_interface,
+(B[m[31m-    range_from_low_high,
+(B[m[31m-    range_from_network_mask,
+(B[m[31m-    range_is_rfc1918,
+(B[m[31m-    sweep_range_size,
+(B[m[32m+    get_ipv4_interfaces, range_from_cidr, range_from_interface, range_from_low_high,
+(B[m[32m+    range_from_network_mask, range_is_rfc1918, sweep_range_size,
+(B[m };
+ 
+ use crate::ipv4::packet::build_echo_request;
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:28:
+ 
+ use crate::ipv4::socket::{
+[31m-    create_ping_socket,
+(B[m[31m-    receive_sweep_reply,
+(B[m[31m-    send_echo_request,
+(B[m[31m-    set_socket_nonblocking,
+(B[m[32m+    create_ping_socket, receive_sweep_reply, send_echo_request, set_socket_nonblocking,
+(B[m };
+ 
+[31m-use crate::types::{
+(B[m[31m-    SweepEvent,
+(B[m[31m-    SweepProbe,
+(B[m[31m-    SweepRange,
+(B[m[31m-};
+(B[m[32m+use crate::types::{SweepEvent, SweepProbe, SweepRange};
+(B[m 
+ fn sweep_range(
+     fd: i32,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:47:
+     interval: Duration,
+     concurrency: usize,
+ ) -> io::Result<()> {
+[31m-    let mut next_address =
+(B[m[31m-        u32::from(range.first);
+(B[m[32m+    let mut next_address = u32::from(range.first);
+(B[m 
+[31m-    let last_address =
+(B[m[31m-        u32::from(range.last);
+(B[m[32m+    let last_address = u32::from(range.last);
+(B[m 
+     let mut sequence: u16 = 1;
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:58:
+[31m-    let mut outstanding:
+(B[m[31m-        Vec<SweepProbe> =
+(B[m[31m-        Vec::new();
+(B[m[32m+    let mut outstanding: Vec<SweepProbe> = Vec::new();
+(B[m 
+[31m-    let mut next_send =
+(B[m[31m-        Instant::now();
+(B[m[32m+    let mut next_send = Instant::now();
+(B[m 
+[31m-    while next_address <= last_address
+(B[m[31m-        || !outstanding.is_empty()
+(B[m[31m-    {
+(B[m[32m+    while next_address <= last_address || !outstanding.is_empty() {
+(B[m         while next_address <= last_address
+[31m-            && outstanding.len()
+(B[m[31m-                < concurrency
+(B[m[31m-            && Instant::now()
+(B[m[31m-                >= next_send
+(B[m[32m+            && outstanding.len() < concurrency
+(B[m[32m+            && Instant::now() >= next_send
+(B[m         {
+[31m-            let target =
+(B[m[31m-                Ipv4Addr::from(
+(B[m[31m-                    next_address
+(B[m[31m-                );
+(B[m[32m+            let target = Ipv4Addr::from(next_address);
+(B[m 
+[31m-            let packet =
+(B[m[31m-                build_echo_request(
+(B[m[31m-                    sequence,
+(B[m[31m-                    payload_size,
+(B[m[31m-                );
+(B[m[32m+            let packet = build_echo_request(sequence, payload_size);
+(B[m 
+[31m-            match send_echo_request(
+(B[m[31m-                fd,
+(B[m[31m-                target,
+(B[m[31m-                &packet,
+(B[m[31m-            ) {
+(B[m[32m+            match send_echo_request(fd, target, &packet) {
+(B[m                 Ok(()) => {
+[31m-                    outstanding.push(
+(B[m[31m-                        SweepProbe {
+(B[m[31m-                            target,
+(B[m[31m-                            sequence,
+(B[m[31m-                            sent_at:
+(B[m[31m-                                Instant::now(),
+(B[m[31m-                        }
+(B[m[31m-                    );
+(B[m[32m+                    outstanding.push(SweepProbe {
+(B[m[32m+                        target,
+(B[m[32m+                        sequence,
+(B[m[32m+                        sent_at: Instant::now(),
+(B[m[32m+                    });
+(B[m                 }
+ 
+                 Err(error) => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:102:
+                     match error.kind() {
+[31m-                        io::ErrorKind::HostUnreachable
+(B[m[31m-                        | io::ErrorKind::NetworkUnreachable => {
+(B[m[32m+                        io::ErrorKind::HostUnreachable | io::ErrorKind::NetworkUnreachable => {
+(B[m                             /*
+                              * A queued ICMP error from an
+                              * earlier sweep probe can surface
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:114:
+                         }
+ 
+                         _ => {
+[31m-                            let result =
+(B[m[31m-                                classify_network_error(
+(B[m[31m-                                    error
+(B[m[31m-                                );
+(B[m[32m+                            let result = classify_network_error(error);
+(B[m 
+[31m-                            if let crate::types::PingResult::LocalError(
+(B[m[31m-                                message
+(B[m[31m-                            ) = result
+(B[m[31m-                            {
+(B[m[32m+                            if let crate::types::PingResult::LocalError(message) = result {
+(B[m                                 eprintln!(
+                                     "{}",
+[31m-                                    style(
+(B[m[31m-                                        format!(
+(B[m[31m-                                            "ring: {target}: {message}"
+(B[m[31m-                                        )
+(B[m[31m-                                    )
+(B[m[31m-                                    .red()
+(B[m[31m-                                    .bold()
+(B[m[32m+                                    style(format!("ring: {target}: {message}")).red().bold()
+(B[m                                 );
+                             }
+                         }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:141:
+ 
+             next_address += 1;
+ 
+[31m-            sequence =
+(B[m[31m-                sequence.wrapping_add(1);
+(B[m[32m+            sequence = sequence.wrapping_add(1);
+(B[m 
+[31m-            next_send =
+(B[m[31m-                Instant::now()
+(B[m[31m-                    + interval;
+(B[m[32m+            next_send = Instant::now() + interval;
+(B[m         }
+ 
+[31m-        while let Some(event) =
+(B[m[31m-            receive_sweep_reply(fd)?
+(B[m[31m-        {
+(B[m[32m+        while let Some(event) = receive_sweep_reply(fd)? {
+(B[m             match event {
+[31m-                SweepEvent::Reply {
+(B[m[31m-                    source,
+(B[m[31m-                    sequence,
+(B[m[31m-                } => {
+(B[m[31m-                    if let Some(index) =
+(B[m[31m-                        outstanding
+(B[m[31m-                            .iter()
+(B[m[31m-                            .position(
+(B[m[31m-                                |probe| {
+(B[m[31m-                                    probe.sequence
+(B[m[31m-                                        == sequence
+(B[m[31m-                                        && probe.target
+(B[m[31m-                                            == source
+(B[m[31m-                                }
+(B[m[31m-                            )
+(B[m[32m+                SweepEvent::Reply { source, sequence } => {
+(B[m[32m+                    if let Some(index) = outstanding
+(B[m[32m+                        .iter()
+(B[m[32m+                        .position(|probe| probe.sequence == sequence && probe.target == source)
+(B[m                     {
+                         println!("{source}");
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:174:
+[31m-                        outstanding
+(B[m[31m-                            .swap_remove(
+(B[m[31m-                                index
+(B[m[31m-                            );
+(B[m[32m+                        outstanding.swap_remove(index);
+(B[m                     }
+                 }
+             }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:181:
+         }
+ 
+[31m-        let now =
+(B[m[31m-            Instant::now();
+(B[m[32m+        let now = Instant::now();
+(B[m 
+[31m-        outstanding.retain(
+(B[m[31m-            |probe| {
+(B[m[31m-                now.duration_since(
+(B[m[31m-                    probe.sent_at
+(B[m[31m-                ) < timeout
+(B[m[31m-            }
+(B[m[31m-        );
+(B[m[32m+        outstanding.retain(|probe| now.duration_since(probe.sent_at) < timeout);
+(B[m 
+[31m-        thread::sleep(
+(B[m[31m-            Duration::from_millis(1)
+(B[m[31m-        );
+(B[m[32m+        thread::sleep(Duration::from_millis(1));
+(B[m     }
+ 
+     Ok(())
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:200:
+ }
+ 
+[31m-fn confirm_sweep(
+(B[m[31m-    range: &SweepRange,
+(B[m[31m-    count: u64,
+(B[m[31m-) -> io::Result<bool> {
+(B[m[32m+fn confirm_sweep(range: &SweepRange, count: u64) -> io::Result<bool> {
+(B[m     eprintln!(
+         "WARNING: sweep range {} - {} contains {} IPv4 addresses.",
+[31m-        range.first,
+(B[m[31m-        range.last,
+(B[m[31m-        count
+(B[m[32m+        range.first, range.last, count
+(B[m     );
+ 
+[31m-    eprint!(
+(B[m[31m-        "Continue? [y/N]: "
+(B[m[31m-    );
+(B[m[32m+    eprint!("Continue? [y/N]: ");
+(B[m 
+     io::stderr().flush()?;
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:219:
+[31m-    let mut answer =
+(B[m[31m-        String::new();
+(B[m[32m+    let mut answer = String::new();
+(B[m 
+[31m-    io::stdin()
+(B[m[31m-        .read_line(
+(B[m[31m-            &mut answer
+(B[m[31m-        )?;
+(B[m[32m+    io::stdin().read_line(&mut answer)?;
+(B[m 
+[31m-    Ok(
+(B[m[31m-        matches!(
+(B[m[31m-            answer
+(B[m[31m-                .trim()
+(B[m[31m-                .to_ascii_lowercase()
+(B[m[31m-                .as_str(),
+(B[m[31m-
+(B[m[31m-            "y" | "yes"
+(B[m[31m-        )
+(B[m[31m-    )
+(B[m[32m+    Ok(matches!(
+(B[m[32m+        answer.trim().to_ascii_lowercase().as_str(),
+(B[m[32m+        "y" | "yes"
+(B[m[32m+    ))
+(B[m }
+ 
+[31m-fn validate_sweep_range(
+(B[m[31m-    range: &SweepRange,
+(B[m[31m-    yes: bool,
+(B[m[31m-    force: bool,
+(B[m[31m-) -> io::Result<bool> {
+(B[m[31m-    let count =
+(B[m[31m-        sweep_range_size(range);
+(B[m[32m+fn validate_sweep_range(range: &SweepRange, yes: bool, force: bool) -> io::Result<bool> {
+(B[m[32m+    let count = sweep_range_size(range);
+(B[m 
+[31m-    let private =
+(B[m[31m-        range_is_rfc1918(range);
+(B[m[32m+    let private = range_is_rfc1918(range);
+(B[m 
+     if force {
+         return Ok(true);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:254:
+     if !private {
+         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                format!(
+(B[m[31m-                    "ring: {} - {} is not entirely within RFC1918 private address space",
+(B[m[31m-                    range.first,
+(B[m[31m-                    range.last
+(B[m[31m-                )
+(B[m[31m-            )
+(B[m[32m+            style(format!(
+(B[m[32m+                "ring: {} - {} is not entirely within RFC1918 private address space",
+(B[m[32m+                range.first, range.last
+(B[m[32m+            ))
+(B[m             .red()
+             .bold()
+         );
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:267:
+ 
+         eprintln!(
+             "{}",
+[31m-            style(
+(B[m[31m-                "Use --force to authorize sweeping non-private address space."
+(B[m[31m-            )
+(B[m[31m-            .yellow()
+(B[m[32m+            style("Use --force to authorize sweeping non-private address space.").yellow()
+(B[m         );
+ 
+         return Ok(false);
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:285:
+             return Ok(true);
+         }
+ 
+[31m-        return confirm_sweep(
+(B[m[31m-            range,
+(B[m[31m-            count,
+(B[m[31m-        );
+(B[m[32m+        return confirm_sweep(range, count);
+(B[m     }
+ 
+     eprintln!(
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:296:
+         count
+     );
+ 
+[31m-    eprintln!(
+(B[m[31m-        "Use --force to override the large-network safety limit."
+(B[m[31m-    );
+(B[m[32m+    eprintln!("Use --force to override the large-network safety limit.");
+(B[m 
+     Ok(false)
+ }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:305:
+ 
+[31m-fn build_sweep_ranges(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-) -> io::Result<Vec<SweepRange>> {
+(B[m[32m+fn build_sweep_ranges(cli: &Cli) -> io::Result<Vec<SweepRange>> {
+(B[m     let manual_scope =
+[31m-        cli.low.is_some()
+(B[m[31m-            || cli.high.is_some()
+(B[m[31m-            || cli.network.is_some()
+(B[m[31m-            || cli.mask.is_some();
+(B[m[32m+        cli.low.is_some() || cli.high.is_some() || cli.network.is_some() || cli.mask.is_some();
+(B[m 
+[31m-    if manual_scope
+(B[m[31m-        && cli.target.is_some()
+(B[m[31m-    {
+(B[m[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::InvalidInput,
+(B[m[31m-                "an interface name cannot be combined with a manually specified sweep range",
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+    if manual_scope && cli.target.is_some() {
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::InvalidInput,
+(B[m[32m+            "an interface name cannot be combined with a manually specified sweep range",
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    if let (
+(B[m[31m-        Some(low),
+(B[m[31m-        Some(high),
+(B[m[31m-    ) =
+(B[m[31m-        (
+(B[m[31m-            cli.low,
+(B[m[31m-            cli.high,
+(B[m[31m-        )
+(B[m[31m-    {
+(B[m[31m-        return Ok(
+(B[m[31m-            vec![
+(B[m[31m-                range_from_low_high(
+(B[m[31m-                    low,
+(B[m[31m-                    high,
+(B[m[31m-                )?
+(B[m[31m-            ]
+(B[m[31m-        );
+(B[m[32m+    if let (Some(low), Some(high)) = (cli.low, cli.high) {
+(B[m[32m+        return Ok(vec![range_from_low_high(low, high)?]);
+(B[m     }
+ 
+[31m-    if let Some(
+(B[m[31m-        network_text
+(B[m[31m-    ) = &cli.network
+(B[m[31m-    {
+(B[m[31m-        if network_text
+(B[m[31m-            .contains('/')
+(B[m[31m-        {
+(B[m[32m+    if let Some(network_text) = &cli.network {
+(B[m[32m+        if network_text.contains('/') {
+(B[m             if cli.mask.is_some() {
+[31m-                return Err(
+(B[m[31m-                    io::Error::new(
+(B[m[31m-                        io::ErrorKind::InvalidInput,
+(B[m[31m-                        "--mask must not be used when --network is in CIDR notation",
+(B[m[31m-                    )
+(B[m[31m-                );
+(B[m[32m+                return Err(io::Error::new(
+(B[m[32m+                    io::ErrorKind::InvalidInput,
+(B[m[32m+                    "--mask must not be used when --network is in CIDR notation",
+(B[m[32m+                ));
+(B[m             }
+ 
+[31m-            return Ok(
+(B[m[31m-                vec![
+(B[m[31m-                    range_from_cidr(
+(B[m[31m-                        network_text
+(B[m[31m-                    )?
+(B[m[31m-                ]
+(B[m[31m-            );
+(B[m[32m+            return Ok(vec![range_from_cidr(network_text)?]);
+(B[m         }
+ 
+[31m-        let address:
+(B[m[31m-            Ipv4Addr =
+(B[m[31m-            network_text
+(B[m[31m-                .parse()
+(B[m[31m-                .map_err(
+(B[m[31m-                    |_| {
+(B[m[31m-                        io::Error::new(
+(B[m[31m-                            io::ErrorKind::InvalidInput,
+(B[m[31m-                            format!(
+(B[m[31m-                                "Invalid IPv4 network address: {network_text}"
+(B[m[31m-                            ),
+(B[m[31m-                        )
+(B[m[31m-                    }
+(B[m[31m-                )?;
+(B[m[32m+        let address: Ipv4Addr = network_text.parse().map_err(|_| {
+(B[m[32m+            io::Error::new(
+(B[m[32m+                io::ErrorKind::InvalidInput,
+(B[m[32m+                format!("Invalid IPv4 network address: {network_text}"),
+(B[m[32m+            )
+(B[m[32m+        })?;
+(B[m 
+[31m-        let mask =
+(B[m[31m-            cli.mask
+(B[m[31m-                .ok_or_else(
+(B[m[31m-                    || {
+(B[m[31m-                        io::Error::new(
+(B[m[31m-                            io::ErrorKind::InvalidInput,
+(B[m[31m-                            "--mask is required when --network is not in CIDR notation",
+(B[m[31m-                        )
+(B[m[31m-                    }
+(B[m[31m-                )?;
+(B[m[32m+        let mask = cli.mask.ok_or_else(|| {
+(B[m[32m+            io::Error::new(
+(B[m[32m+                io::ErrorKind::InvalidInput,
+(B[m[32m+                "--mask is required when --network is not in CIDR notation",
+(B[m[32m+            )
+(B[m[32m+        })?;
+(B[m 
+[31m-        return Ok(
+(B[m[31m-            vec![
+(B[m[31m-                range_from_network_mask(
+(B[m[31m-                    address,
+(B[m[31m-                    mask,
+(B[m[31m-                )?
+(B[m[31m-            ]
+(B[m[31m-        );
+(B[m[32m+        return Ok(vec![range_from_network_mask(address, mask)?]);
+(B[m     }
+ 
+[31m-    let requested_interface =
+(B[m[31m-        cli.target.as_deref();
+(B[m[32m+    let requested_interface = cli.target.as_deref();
+(B[m 
+[31m-    let interfaces =
+(B[m[31m-        get_ipv4_interfaces(
+(B[m[31m-            requested_interface
+(B[m[31m-        )?;
+(B[m[32m+    let interfaces = get_ipv4_interfaces(requested_interface)?;
+(B[m 
+     if interfaces.is_empty() {
+[31m-        return Err(
+(B[m[31m-            io::Error::new(
+(B[m[31m-                io::ErrorKind::NotFound,
+(B[m[31m-                match requested_interface {
+(B[m[31m-                    Some(name) => {
+(B[m[31m-                        format!(
+(B[m[31m-                            "No usable IPv4 interface named {name}"
+(B[m[31m-                        )
+(B[m[31m-                    }
+(B[m[32m+        return Err(io::Error::new(
+(B[m[32m+            io::ErrorKind::NotFound,
+(B[m[32m+            match requested_interface {
+(B[m[32m+                Some(name) => {
+(B[m[32m+                    format!("No usable IPv4 interface named {name}")
+(B[m[32m+                }
+(B[m 
+[31m-                    None => {
+(B[m[31m-                        "No usable IPv4 interfaces found"
+(B[m[31m-                            .to_string()
+(B[m[31m-                    }
+(B[m[31m-                },
+(B[m[31m-            )
+(B[m[31m-        );
+(B[m[32m+                None => "No usable IPv4 interfaces found".to_string(),
+(B[m[32m+            },
+(B[m[32m+        ));
+(B[m     }
+ 
+[31m-    interfaces
+(B[m[31m-        .iter()
+(B[m[31m-        .map(
+(B[m[31m-            range_from_interface
+(B[m[31m-        )
+(B[m[31m-        .collect()
+(B[m[32m+    interfaces.iter().map(range_from_interface).collect()
+(B[m }
+ 
+[31m-pub fn run(
+(B[m[31m-    cli: &Cli,
+(B[m[31m-    timeout: Duration,
+(B[m[31m-    interval: Duration,
+(B[m[31m-) -> io::Result<()> {
+(B[m[31m-    let ranges =
+(B[m[31m-        build_sweep_ranges(cli)?;
+(B[m[32m+pub fn run(cli: &Cli, timeout: Duration, interval: Duration) -> io::Result<()> {
+(B[m[32m+    let ranges = build_sweep_ranges(cli)?;
+(B[m 
+[31m-    let fd =
+(B[m[31m-        create_ping_socket(
+(B[m[31m-            timeout
+(B[m[31m-        )?;
+(B[m[32m+    let fd = create_ping_socket(timeout)?;
+(B[m 
+[31m-    set_socket_nonblocking(
+(B[m[31m-        fd
+(B[m[31m-    )?;
+(B[m[32m+    set_socket_nonblocking(fd)?;
+(B[m 
+     for range in &ranges {
+[31m-        if !validate_sweep_range(
+(B[m[31m-            range,
+(B[m[31m-            cli.yes,
+(B[m[31m-            cli.force,
+(B[m[31m-        )? {
+(B[m[32m+        if !validate_sweep_range(range, cli.yes, cli.force)? {
+(B[m             continue;
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:468:
+[31m-        let count =
+(B[m[31m-            sweep_range_size(
+(B[m[31m-                range
+(B[m[31m-            );
+(B[m[32m+        let count = sweep_range_size(range);
+(B[m 
+[31m-        match (
+(B[m[31m-            &range.interface_name,
+(B[m[31m-            range.prefix_length,
+(B[m[31m-        ) {
+(B[m[31m-            (
+(B[m[31m-                Some(interface),
+(B[m[31m-                Some(prefix),
+(B[m[31m-            ) => {
+(B[m[32m+        match (&range.interface_name, range.prefix_length) {
+(B[m[32m+            (Some(interface), Some(prefix)) => {
+(B[m                 eprintln!(
+                     "Sweep: {} {}/{} -> {} - {} ({} addresses)",
+                     interface,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:492:
+             _ => {
+                 eprintln!(
+                     "Sweep: {} - {} ({} addresses)",
+[31m-                    range.first,
+(B[m[31m-                    range.last,
+(B[m[31m-                    count
+(B[m[32m+                    range.first, range.last, count
+(B[m                 );
+             }
+         }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:501:
+ 
+[31m-        sweep_range(
+(B[m[31m-            fd,
+(B[m[31m-            range,
+(B[m[31m-            cli.size,
+(B[m[31m-            timeout,
+(B[m[31m-            interval,
+(B[m[31m-            cli.concurrency,
+(B[m[31m-        )?;
+(B[m[32m+        sweep_range(fd, range, cli.size, timeout, interval, cli.concurrency)?;
+(B[m     }
+ 
+     unsafe {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/modes/sweep.rs:515:
+ 
+     Ok(())
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:3:
+ use std::time::Duration;
+ 
+ use crate::stats::estimate_hops;
+[31m-use crate::types::{
+(B[m[31m-    PingResult,
+(B[m[31m-    RouteHop,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingResult, RouteHop};
+(B[m 
+ pub fn display_target(original: &str, resolved: Ipv4Addr) -> String {
+     if original.parse::<Ipv4Addr>().is_ok() {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:16:
+     }
+ }
+ 
+[31m-pub fn print_result(
+(B[m[31m-    target: &str,
+(B[m[31m-    sequence: u16,
+(B[m[31m-    result: &PingResult,
+(B[m[31m-    timeout: Duration,
+(B[m[31m-) {
+(B[m[32m+pub fn print_result(target: &str, sequence: u16, result: &PingResult, timeout: Duration) {
+(B[m     let target_text = style(target).cyan().bold();
+     let sequence_text = style(format!("seq={sequence}")).blue().bold();
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:207:
+     }
+ }
+ 
+[31m-pub fn print_route_statistics(
+(B[m[31m-    hop: &RouteHop,
+(B[m[31m-    previous_average: &mut Option<f64>,
+(B[m[31m-) {
+(B[m[32m+pub fn print_route_statistics(hop: &RouteHop, previous_average: &mut Option<f64>) {
+(B[m     let address_text = match hop.address {
+         Some(address) => match &hop.hostname {
+             Some(hostname) => format!("{hostname} ({address})"),
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:232:
+                 None => "-".to_string(),
+             };
+ 
+[31m-            let responder_marker =
+(B[m[31m-                if hop.multiple_responders { " +" } else { "" };
+(B[m[32m+            let responder_marker = if hop.multiple_responders { " +" } else { "" };
+(B[m 
+             println!(
+                 "{:<4} {:<32} {:>8.1}% {:>9.1} {:>9.1} {:>9.1} {:>9.1} {:>9}",
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:253:
+         None => {
+             println!(
+                 "{:<4} {:<32} {:>8.1}% {:>9} {:>9} {:>9} {:>9} {:>9}",
+[31m-                hop.hop,
+(B[m[31m-                address_text,
+(B[m[31m-                loss,
+(B[m[31m-                "-",
+(B[m[31m-                "-",
+(B[m[31m-                "-",
+(B[m[31m-                "-",
+(B[m[31m-                "-"
+(B[m[32m+                hop.hop, address_text, loss, "-", "-", "-", "-", "-"
+(B[m             );
+         }
+     }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:267:
+ }
+ 
+ pub fn print_route_compact(hop: &RouteHop) {
+[31m-    let hop_number =
+(B[m[31m-        style(format!("{:>2}", hop.hop))
+(B[m[31m-            .blue()
+(B[m[31m-            .bold();
+(B[m[32m+    let hop_number = style(format!("{:>2}", hop.hop)).blue().bold();
+(B[m 
+     match hop.address {
+         Some(address) => {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:299:
+         }
+ 
+         None => {
+[31m-            println!(
+(B[m[31m-                "{}  {}",
+(B[m[31m-                hop_number,
+(B[m[31m-                style("*").yellow().bold()
+(B[m[31m-            );
+(B[m[32m+            println!("{}  {}", hop_number, style("*").yellow().bold());
+(B[m         }
+     }
+ }
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:310:
+ 
+[31m-pub fn format_error_source(
+(B[m[31m-    from: &Option<Ipv4Addr>,
+(B[m[31m-) -> String {
+(B[m[32m+pub fn format_error_source(from: &Option<Ipv4Addr>) -> String {
+(B[m     match from {
+         Some(address) => format!("from={address}"),
+         None => String::new(),
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/output.rs:317:
+     }
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:1:
+ use console::style;
+ use std::time::Duration;
+ 
+[31m-use crate::types::{
+(B[m[31m-    PingStats,
+(B[m[31m-    RouteHop,
+(B[m[31m-    RttStats,
+(B[m[31m-};
+(B[m[32m+use crate::types::{PingStats, RouteHop, RttStats};
+(B[m 
+ impl PingStats {
+     pub fn new() -> Self {
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:51:
+         if self.errors == 0 {
+             println!(
+                 "{} packets transmitted, {} received, {:.1}% packet loss, time {}ms",
+[31m-                self.transmitted,
+(B[m[31m-                self.received,
+(B[m[31m-                loss,
+(B[m[31m-                elapsed_ms
+(B[m[32m+                self.transmitted, self.received, loss, elapsed_ms
+(B[m             );
+         } else {
+             println!(
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:61:
+                 "{} packets transmitted, {} received, {} errors, {:.1}% packet loss, time {}ms",
+[31m-                self.transmitted,
+(B[m[31m-                self.received,
+(B[m[31m-                self.errors,
+(B[m[31m-                loss,
+(B[m[31m-                elapsed_ms
+(B[m[32m+                self.transmitted, self.received, self.errors, loss, elapsed_ms
+(B[m             );
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:70:
+         if let Some(stats) = calculate_rtt_stats(&self.rtts) {
+             println!(
+                 "rtt min/avg/max/mdev = {:.3}/{:.3}/{:.3}/{:.3} ms",
+[31m-                stats.min,
+(B[m[31m-                stats.avg,
+(B[m[31m-                stats.max,
+(B[m[31m-                stats.mdev
+(B[m[32m+                stats.min, stats.avg, stats.max, stats.mdev
+(B[m             );
+         }
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:81:
+             let min = *self.ttls.iter().min().unwrap();
+             let max = *self.ttls.iter().max().unwrap();
+ 
+[31m-            let avg =
+(B[m[31m-                self.ttls
+(B[m[31m-                    .iter()
+(B[m[31m-                    .map(|ttl| *ttl as f64)
+(B[m[31m-                    .sum::<f64>()
+(B[m[31m-                    / self.ttls.len() as f64;
+(B[m[32m+            let avg = self.ttls.iter().map(|ttl| *ttl as f64).sum::<f64>() / self.ttls.len() as f64;
+(B[m 
+             println!("ttl min/avg/max = {}/{:.1}/{}", min, avg, max);
+ 
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:138:
+         return None;
+     }
+ 
+[31m-    let rtts_ms: Vec<f64> =
+(B[m[31m-        rtts.iter()
+(B[m[31m-            .map(|rtt| rtt.as_secs_f64() * 1000.0)
+(B[m[31m-            .collect();
+(B[m[32m+    let rtts_ms: Vec<f64> = rtts.iter().map(|rtt| rtt.as_secs_f64() * 1000.0).collect();
+(B[m 
+[31m-    let min =
+(B[m[31m-        rtts_ms
+(B[m[31m-            .iter()
+(B[m[31m-            .copied()
+(B[m[31m-            .fold(f64::INFINITY, f64::min);
+(B[m[32m+    let min = rtts_ms.iter().copied().fold(f64::INFINITY, f64::min);
+(B[m 
+[31m-    let max =
+(B[m[31m-        rtts_ms
+(B[m[31m-            .iter()
+(B[m[31m-            .copied()
+(B[m[31m-            .fold(f64::NEG_INFINITY, f64::max);
+(B[m[32m+    let max = rtts_ms.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+(B[m 
+[31m-    let avg =
+(B[m[31m-        rtts_ms.iter().sum::<f64>() / rtts_ms.len() as f64;
+(B[m[32m+    let avg = rtts_ms.iter().sum::<f64>() / rtts_ms.len() as f64;
+(B[m 
+[31m-    let variance =
+(B[m[31m-        rtts_ms
+(B[m[31m-            .iter()
+(B[m[31m-            .map(|rtt| {
+(B[m[31m-                let difference = *rtt - avg;
+(B[m[31m-                difference * difference
+(B[m[31m-            })
+(B[m[31m-            .sum::<f64>()
+(B[m[31m-            / rtts_ms.len() as f64;
+(B[m[32m+    let variance = rtts_ms
+(B[m[32m+        .iter()
+(B[m[32m+        .map(|rtt| {
+(B[m[32m+            let difference = *rtt - avg;
+(B[m[32m+            difference * difference
+(B[m[32m+        })
+(B[m[32m+        .sum::<f64>()
+(B[m[32m+        / rtts_ms.len() as f64;
+(B[m 
+     Some(RttStats {
+         min,
+Diff in /home/dknowlton/Development/rust/ring/ring-v6add/src/stats.rs:175:
+         mdev: variance.sqrt(),
+     })
+ }
+[32m+
+(B[mDiff in /home/dknowlton/Development/rust/ring/ring-v6add/src/types.rs:117:
+ }
+ 
+ pub enum SweepEvent {
+[31m-    Reply {
+(B[m[31m-        source: Ipv4Addr,
+(B[m[31m-        sequence: u16,
+(B[m[31m-    },
+(B[m[32m+    Reply { source: Ipv4Addr, sequence: u16 },
+(B[m }
+[32m+
+(B[m[1;31m[FAIL][0m cargo fmt --check
+
+[1;36m[INFO][0m Running cargo check...
+[1;32m[PASS][0m cargo check
+
+[1;36m[INFO][0m Running Clippy with warnings promoted to errors...
+[1;32m[PASS][0m cargo clippy
+
+[1;36m[INFO][0m Running Rust tests...
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1;32m[PASS][0m cargo test
+
+[1;36m[INFO][0m Building fresh debug binary...
+[1;32m[PASS][0m cargo build
+
+[1;35m============================================================[0m
+[1;35mBasic Program Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Display version
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --version
+
+ring 0.2.0
+[1;32m[PASS][0m Display version
+
+[1;34m[TEST][0m Display help
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --help
+
+Linux ICMP reachability, latency, route tracing, and network discovery utility
+
+Usage: ring [OPTIONS] [TARGET]
+
+Arguments:
+  [TARGET]  Host/IP normally, or interface name when -b is used
+
+Options:
+  -c, --count <COUNT>            
+  -z, --continuous               
+  -b, --broadcast                Probe local IPv4 broadcast addresses
+  -s, --size <BYTES>             ICMP payload size in bytes [default: 56]
+  -t, --timeout <MILLISECONDS>   Reply timeout in milliseconds
+  -i, --interval <MILLISECONDS>  Delay between transmitted requests in milliseconds
+      --route                    Trace the route to the destination
+      --resolve                  Perform reverse DNS lookups for route hops
+  -v, --verbose                  Display detailed route information
+      --max-hops <HOPS>          Maximum number of hops when tracing a route [default: 30]
+  -S, --sweep                    Sweep IPv4 addresses for responding hosts
+      --concurrency <COUNT>      Maximum number of outstanding sweep probes [default: 16]
+  -y, --yes                      Automatically confirm permitted large RFC1918 private-network sweeps
+      --force                    Force a sweep regardless of network size or public/private address space
+      --low <ADDRESS>            First IPv4 address in a manually specified sweep range
+      --high <ADDRESS>           Last IPv4 address in a manually specified sweep range
+      --network <NETWORK>        IPv4 network to sweep
+      --mask <NETMASK>           Subnet mask used with --network
+      --json                     Output structured results as JSON
+  -h, --help                     Print help
+  -V, --version                  Print version
+[1;32m[PASS][0m Display help
+
+[1;35m============================================================[0m
+[1;35mPositive Ping Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Ping local host
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring 172.23.23.32
+
+172.23.23.32 ALIVE seq=1 ttl=64 hops≈0 time=0.063 ms
+[1;32m[PASS][0m Ping local host
+
+[1;34m[TEST][0m Ping gateway
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring 172.23.23.254
+
+172.23.23.254 ALIVE seq=1 ttl=64 hops≈0 time=0.645 ms
+[1;32m[PASS][0m Ping gateway
+
+[1;34m[TEST][0m Resolve DNS name and ping
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring google.com
+
+google.com (142.251.41.14) ALIVE seq=1 ttl=248 hops≈7 time=40.132 ms
+[1;32m[PASS][0m Resolve DNS name and ping
+
+[1;34m[TEST][0m Three-packet count
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -c 3 172.23.23.254
+
+172.23.23.254 ALIVE seq=1 ttl=64 hops≈0 time=0.346 ms
+172.23.23.254 ALIVE seq=2 ttl=64 hops≈0 time=0.559 ms
+172.23.23.254 ALIVE seq=3 ttl=64 hops≈0 time=0.631 ms
+
+--- 172.23.23.254 ring statistics ---
+3 packets transmitted, 3 received, 0.0% packet loss, time 2001ms
+rtt min/avg/max/mdev = 0.346/0.512/0.631/0.121 ms
+ttl min/avg/max = 64/64.0/64
+estimated route = ≈0 hops
+[1;32m[PASS][0m Three-packet count
+
+[1;34m[TEST][0m Custom payload size
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -s 100 172.23.23.254
+
+172.23.23.254 ALIVE seq=1 ttl=64 hops≈0 time=0.331 ms
+[1;32m[PASS][0m Custom payload size
+
+[1;34m[TEST][0m Custom timeout
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -t 1000 172.23.23.254
+
+172.23.23.254 ALIVE seq=1 ttl=64 hops≈0 time=0.476 ms
+[1;32m[PASS][0m Custom timeout
+
+[1;34m[TEST][0m Custom interval with count
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -c 3 -i 250 172.23.23.254
+
+172.23.23.254 ALIVE seq=1 ttl=64 hops≈0 time=0.303 ms
+172.23.23.254 ALIVE seq=2 ttl=64 hops≈0 time=0.720 ms
+172.23.23.254 ALIVE seq=3 ttl=64 hops≈0 time=0.555 ms
+
+--- 172.23.23.254 ring statistics ---
+3 packets transmitted, 3 received, 0.0% packet loss, time 502ms
+rtt min/avg/max/mdev = 0.303/0.526/0.720/0.171 ms
+ttl min/avg/max = 64/64.0/64
+estimated route = ≈0 hops
+[1;32m[PASS][0m Custom interval with count
+
+[1;35m============================================================[0m
+[1;35mJSON Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m JSON ping output
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --json 172.23.23.254
+
+{
+  "schema_version": 1,
+  "mode": "ping",
+  "target": "172.23.23.254",
+  "address": "172.23.23.254",
+  "transmitted": 1,
+  "received": 1,
+  "probes": [
+    {
+      "sequence": 1,
+      "status": "alive",
+      "rtt_ms": 0.211,
+      "ttl": 64
+    }
+  ]
+}
+[1;32m[PASS][0m JSON ping output
+
+[1;34m[TEST][0m Validate JSON with jq
+
+[1;32m[PASS][0m JSON validates with jq
+
+[1;35m============================================================[0m
+[1;35mRoute Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Basic route trace
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route 172.23.23.254
+
+Tracing route to 172.23.23.254, maximum 30 hops
+
+ 1  172.23.23.254                                 0.261 ms
+
+Route = 1 hops
+[1;32m[PASS][0m Basic route trace
+
+[1;34m[TEST][0m Verbose route trace
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route -v 172.23.23.254
+
+Tracing route to 172.23.23.254, maximum 30 hops
+3 probes per hop
+
+Hop  Address                           RespLoss       Min       Avg       Max      mdev      ΔAvg
+1    172.23.23.254                         0.0%       0.1       0.2       0.3       0.1         -
+
+Route = 1 hops
+3 probes transmitted, 3 responses
+[1;32m[PASS][0m Verbose route trace
+
+[1;34m[TEST][0m Route trace with DNS resolution
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route --resolve 172.23.23.254
+
+Tracing route to 172.23.23.254, maximum 30 hops
+
+ 1  _gateway (172.23.23.254)                      0.285 ms
+
+Route = 1 hops
+[1;32m[PASS][0m Route trace with DNS resolution
+
+[1;34m[TEST][0m Route with explicit maximum hops
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route --max-hops 5 172.23.23.254
+
+Tracing route to 172.23.23.254, maximum 5 hops
+
+ 1  172.23.23.254                                 0.220 ms
+
+Route = 1 hops
+[1;32m[PASS][0m Route with explicit maximum hops
+
+[1;35m============================================================[0m
+[1;35mBroadcast / Interface Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m List all broadcast interfaces
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -b
+
+Broadcast interfaces:
+ens18 address=172.23.23.32 broadcast=172.23.23.255
+br-d5344488ae54 address=172.18.0.1 broadcast=172.18.255.255
+docker0 address=172.17.0.1 broadcast=172.17.255.255
+[1;32m[PASS][0m List all broadcast interfaces
+
+[1;34m[TEST][0m List selected broadcast interface
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -b ens18
+
+Broadcast interfaces:
+ens18 address=172.23.23.32 broadcast=172.23.23.255
+[1;32m[PASS][0m List selected broadcast interface
+
+[1;35m============================================================[0m
+[1;35mSweep Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Sweep selected interface
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S ens18
+
+172.23.23.32
+172.23.23.55
+172.23.23.56
+172.23.23.70
+172.23.23.99
+172.23.23.100
+172.23.23.101
+172.23.23.254
+[1;32m[PASS][0m Sweep selected interface
+
+[1;34m[TEST][0m Sweep small explicit address range
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --low 172.23.23.30 --high 172.23.23.60
+
+172.23.23.32
+172.23.23.55
+172.23.23.56
+[1;32m[PASS][0m Sweep small explicit address range
+
+[1;34m[TEST][0m Sweep network using CIDR
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --network 172.23.23.30/27
+
+[1;32m[PASS][0m Sweep network using CIDR
+
+[1;34m[TEST][0m Sweep with increased concurrency
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S ens18 --concurrency 32
+
+172.23.23.32
+172.23.23.55
+172.23.23.56
+172.23.23.70
+172.23.23.99
+172.23.23.100
+172.23.23.101
+172.23.23.254
+[1;32m[PASS][0m Sweep with increased concurrency
+
+[1;34m[TEST][0m Sweep with custom timeout and interval
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S ens18 -t 750 -i 20
+
+172.23.23.32
+172.23.23.55
+172.23.23.56
+172.23.23.70
+172.23.23.99
+172.23.23.100
+172.23.23.101
+172.23.23.254
+[1;32m[PASS][0m Sweep with custom timeout and interval
+
+[1;35m============================================================[0m
+[1;35mSweep Output Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Redirect sweep results to file
+
+[1;32m[PASS][0m Sweep produced redirected host list
+
+Discovered hosts:
+172.23.23.32
+172.23.23.55
+172.23.23.56
+172.23.23.70
+172.23.23.99
+172.23.23.100
+172.23.23.101
+172.23.23.254
+
+[1;35m============================================================[0m
+[1;35mExpected Error Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Missing target
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring
+
+[1;32m[PASS][0m Missing target returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m COUNT cannot be zero
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -c 0 172.23.23.254
+
+[1;32m[PASS][0m COUNT cannot be zero returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m TIMEOUT cannot be zero
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -t 0 172.23.23.254
+
+[1;32m[PASS][0m TIMEOUT cannot be zero returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m INTERVAL cannot be zero
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -i 0 172.23.23.254
+
+[1;32m[PASS][0m INTERVAL cannot be zero returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Sweep concurrency cannot be zero
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S ens18 --concurrency 0
+
+[1;32m[PASS][0m Sweep concurrency cannot be zero returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Payload exceeds IPv4 maximum
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -s 65508 172.23.23.254
+
+[1;32m[PASS][0m Payload exceeds IPv4 maximum returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Invalid DNS name
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring this-host-should-not-exist.invalid
+
+[1;32m[PASS][0m Invalid DNS name returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m IPv6 target is unsupported
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring ::1
+
+[1;32m[PASS][0m IPv6 target is unsupported returned expected non-zero exit status (2)
+
+[1;35m============================================================[0m
+[1;35mCLI Conflict Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m Broadcast and route conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -b --route ens18
+
+[1;32m[PASS][0m Broadcast and route conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Broadcast and sweep conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -b -S ens18
+
+[1;32m[PASS][0m Broadcast and sweep conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Route and sweep conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route -S 172.23.23.254
+
+[1;32m[PASS][0m Route and sweep conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Route and JSON conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --route --json 172.23.23.254
+
+[1;32m[PASS][0m Route and JSON conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Sweep and JSON conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --json ens18
+
+[1;32m[PASS][0m Sweep and JSON conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Continuous and count conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -z -c 3 172.23.23.254
+
+[1;32m[PASS][0m Continuous and count conflict returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m --resolve without --route
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring --resolve 172.23.23.254
+
+[1;32m[PASS][0m --resolve without --route returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m --verbose without --route
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -v 172.23.23.254
+
+[1;32m[PASS][0m --verbose without --route returned expected non-zero exit status (2)
+
+[1;35m============================================================[0m
+[1;35mSweep Validation Tests[0m
+[1;35m============================================================[0m
+
+
+[1;34m[TEST][0m LOW greater than HIGH
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --low 192.168.1.100 --high 192.168.1.20
+
+[1;32m[PASS][0m LOW greater than HIGH returned expected non-zero exit status (1)
+
+[1;34m[TEST][0m LOW without HIGH
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --low 192.168.1.20
+
+[1;32m[PASS][0m LOW without HIGH returned expected non-zero exit status (2)
+
+[1;34m[TEST][0m Non-contiguous subnet mask
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --network 192.168.1.0 --mask 255.0.255.0
+
+[1;32m[PASS][0m Non-contiguous subnet mask returned expected non-zero exit status (1)
+
+[1;34m[TEST][0m Unsupported /31 sweep
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --network 192.168.1.0/31
+
+[1;32m[PASS][0m Unsupported /31 sweep returned expected non-zero exit status (1)
+
+[1;34m[TEST][0m Invalid CIDR prefix
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S --network 192.168.1.0/33
+
+[1;32m[PASS][0m Invalid CIDR prefix returned expected non-zero exit status (1)
+
+[1;34m[TEST][0m Manual range and interface conflict
+Command: /home/dknowlton/Development/rust/ring/ring-v6add/target/debug/ring -S ens18 --low 192.168.1.1 --high 192.168.1.10
+
+[1;32m[PASS][0m Manual range and interface conflict returned expected non-zero exit status (1)
+
+[1;35m============================================================[0m
+[1;35mTest Results[0m
+[1;35m============================================================[0m
+
+Positive tests passed:          28
+Positive tests failed:          1
+Expected failures passed:       22
+Expected failures failed:       0
+
+[1;31mONE OR MORE TESTS FAILED[0m
