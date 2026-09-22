@@ -1,4 +1,8 @@
-# ring
+# pong
+I found out the name ring has been used for an application. I am officially renaming ring to pong. The name change will take a little while to implement and completely remove the name ring from the project and rename it to pong.
+
+
+# Formerly known as ring
 
 `ring` is a lightweight IPv4 ICMP network diagnostic utility written in Rust.
 
